@@ -126,7 +126,7 @@ public class Star extends StarLike
 	{
 		super.deserializeNBT(tag);
 		
-		if(tag.contains(ORBIT_INFO))
+		if(tag.contains(SUPERNOVA_INFO))
 		{
 			supernovaInfo = new SupernovaInfo();
 			supernovaInfo.deserializeNBT(tag.getCompound(SUPERNOVA_INFO));

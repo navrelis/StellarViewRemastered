@@ -5,8 +5,9 @@ import net.povstalec.stellarview.StellarView;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class StellarViewConfigSpec
 	private Section section;
 	
 	private File file;
+	private boolean parsed = false; // True once the config file has been read, until then default values are not cached
 	
 	private StellarViewConfigSpec(List<ConfigValue<?>> values, Section section)
 	{
@@ -36,6 +38,7 @@ public class StellarViewConfigSpec
 		this.fileName = fileName;
 		this.file = getFile();
 		parseConfig(file);
+		this.parsed = true;
 	}
 	
 	@Nullable
@@ -73,9 +76,9 @@ public class StellarViewConfigSpec
 		if(lineContent.isEmpty() || lineContent.startsWith("#") || lineContent.startsWith("[")) // Ignore line
 			return;
 		
-		String[] keyValue = lineContent.split("=");
+		String[] keyValue = lineContent.split("=", 2);
 		
-		if(keyValue.length == 2)
+		if(keyValue.length == 2 && !keyValue[1].trim().isEmpty())
 			configMap.put(keyValue[0].trim(), keyValue[1].trim());
 		else
 			StellarView.LOGGER.error("Syntax error on line " + line + " in file " + this.fileName + ", skipping.");
@@ -88,15 +91,14 @@ public class StellarViewConfigSpec
 		
 		StellarView.LOGGER.info("Parsing config file " + file.getName());
 		
-		try
+		try(Scanner scanner = new Scanner(file, StandardCharsets.UTF_8))
 		{
-			Scanner scanner = new Scanner(file);
 			for(int line = 1; scanner.hasNext(); line++)
 			{
 				parseLine(line, scanner.nextLine());
 			}
 		}
-		catch (FileNotFoundException e) { StellarView.LOGGER.error("Failed to locate file: " + e.toString()); }
+		catch (IOException e) { StellarView.LOGGER.error("Failed to read file: " + e.toString()); }
 	}
 	
 	private String configContents()
@@ -312,7 +314,6 @@ public class StellarViewConfigSpec
 		
 		public void save()
 		{
-			System.out.println("Saving " + name + " " + value);
 			spec.writeFile(spec.getFile());
 		}
 		
@@ -320,7 +321,12 @@ public class StellarViewConfigSpec
 		public T get()
 		{
 			if(value == null && spec != null)
+			{
 				value = tryGetRaw();
+				
+				if(value == null && spec.parsed) // Config file has been read, so a missing or invalid value means the default
+					value = getDefault();
+			}
 			
 			return value == null ? getDefault() : value;
 		}
@@ -389,7 +395,16 @@ public class StellarViewConfigSpec
 		@Nullable
 		protected Integer tryGetRaw()
 		{
-			return spec.getInt(name);
+			Integer raw = spec.getInt(name);
+			
+			if(raw == null)
+				return null;
+			
+			int clamped = Math.max(min, Math.min(max, raw));
+			if(clamped != raw)
+				StellarView.LOGGER.warn("Value " + raw + " of " + name + " in file " + spec.fileName + " is outside of range " + min + " ~ " + max + ", using " + clamped + " instead.");
+			
+			return clamped;
 		}
 	}
 }

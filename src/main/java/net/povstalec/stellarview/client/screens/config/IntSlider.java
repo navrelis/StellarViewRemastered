@@ -22,7 +22,6 @@ public class IntSlider extends AbstractSliderButton
 	{
 		super(x, y, width, height, Component.empty(), snapToNearest(value, minValue, maxValue, multiplier));
 		
-		System.out.println("PREPARING: " + prefix.toString() + " " + value);
 		this.prefix = prefix;
 		this.suffix = suffix;
 		
@@ -51,12 +50,12 @@ public class IntSlider extends AbstractSliderButton
 	}
 	
 	/**
-	 * @param value Percentage of slider range
+	 * @param fraction Percentage of slider range (0 - 1)
 	 */
-	private void setSliderValue(double value)
+	private void setSliderValue(double fraction)
 	{
 		double oldValue = this.value;
-		this.value = this.snapToNearest(value, this.minValue, this.maxValue, this.multiplier);
+		this.value = snapToNearest(Mth.lerp(Mth.clamp(fraction, 0D, 1D), this.minValue, this.maxValue), this.minValue, this.maxValue, this.multiplier);
 		if (!Mth.equal(oldValue, this.value))
 			this.applyValue();
 		

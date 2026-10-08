@@ -91,7 +91,7 @@ public final class DefaultViewCenters
 				
 				ViewCenter.Stars.CODEC.optionalFieldOf("stars", new ViewCenter.Stars()).forGetter(viewCenter -> viewCenter.stars),
 				ViewCenter.Fog.CODEC.optionalFieldOf("fog", new ViewCenter.Fog()).forGetter(viewCenter -> viewCenter.fog),
-				Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("z_rotation_multiplier", 0).forGetter(viewCenter -> viewCenter.zRotationMultiplier)
+				Codec.intRange(0, Integer.MAX_VALUE).optionalFieldOf("z_rotation_multiplier", 0).forGetter(viewCenter -> viewCenter.zRotationMultiplier)
 				).apply(instance, Nether::new));
 		
 		public Nether(Optional<ResourceKey<SpaceObject>> viewCenterKey, Optional<List<Skybox>> skyboxes, AxisRotation axisRotation,
@@ -141,7 +141,7 @@ public final class DefaultViewCenters
 				
 				ViewCenter.Stars.CODEC.optionalFieldOf("stars", new ViewCenter.Stars()).forGetter(viewCenter -> viewCenter.stars),
 				ViewCenter.Fog.CODEC.optionalFieldOf("fog", new ViewCenter.Fog()).forGetter(viewCenter -> viewCenter.fog),
-				Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("z_rotation_multiplier", 0).forGetter(viewCenter -> viewCenter.zRotationMultiplier)
+				Codec.intRange(0, Integer.MAX_VALUE).optionalFieldOf("z_rotation_multiplier", 0).forGetter(viewCenter -> viewCenter.zRotationMultiplier)
 				).apply(instance, End::new));
 		
 		public End(Optional<ResourceKey<SpaceObject>> viewCenterKey, Optional<List<Skybox>> skyboxes, AxisRotation axisRotation,

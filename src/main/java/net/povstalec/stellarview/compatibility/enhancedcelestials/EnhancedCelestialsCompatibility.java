@@ -26,7 +26,7 @@ public class EnhancedCelestialsCompatibility
 	
 	public static final Color.FloatRGBA getMoonColor(ClientLevel level, float partialTicks)
 	{
-		AtomicReference<Color.FloatRGBA> result = new AtomicReference<>(new Color.FloatRGBA(1, 1, 1));
+		AtomicReference<Color.FloatRGBA> result = new AtomicReference<>(Color.FloatRGBA.white());
 		/*
 		 * Shamelessly copy pasted from
 		 * https://github.com/CorgiTaco/Enhanced-Celestials/blob/1.20.X/common/src/main/java/dev/corgitaco/enhancedcelestials/client/ECWorldRenderer.java
