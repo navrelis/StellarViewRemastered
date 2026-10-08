@@ -56,3 +56,5 @@
 - 2026-10-08 Pack: 0.6.0 test jar replaced by `mods/StellarViewRemastered-1.21.1-1.0.0-Fabric.jar` (sha256 8252fc98...). Launch check r1 with BSL: 16/16 steps, log `stellarview 1.0.0-Fabric`, paused / resumed / paused, screenshots show the shader's sun and moon with shaders on and Stellar View's with shaders off. Restore verified.
 - 2026-10-08 Pack clean-up: the three Iris option files that Iris had rewritten during the toggles (BSL, Complementary, Complementary + Euphoria) put back to their committed content (pack `git status` clean for `shaderpacks/*.txt`). `config/stellarview-client.toml` never changed. Game lock released 19:35.
 - 2026-10-08 `report.md` written.
+- 2026-10-08 T8b correction 2 done (shader pack sentence). Documents and report committed and pushed.
+- 2026-10-08 T11: main checkout `F:\Coding\Stellar View Remastered` switched from the base branch to `remastered` (session worktree detached), `gradlew build` run there so the release jar is in `build\libs`. Line appended to `F:\Coding\.knowledge\log.md`. Nothing uploaded to CurseForge.
