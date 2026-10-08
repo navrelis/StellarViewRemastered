@@ -30,3 +30,10 @@ Owner's words (2026-10-08): "fork this mod and fix the following issue: moon sho
 - Base branch `stellarview-1.21.1-fabric` (e64d05f), working branch `remastered`. Remotes: `origin` = navrelis/StellarViewRemastered, `upstream` = Povstalec/StellarView. Never force-push.
 - The pack's shader-side "double sun" workaround (Iris option files in `shaderpacks/`): check after R2 whether still needed, report, do not remove.
 - When finished: one line in `F:\Coding\.knowledge\log.md`.
+
+## Owner additions 2026-10-08 evening
+- Ship as it is; no further optimisation.
+- Version 1.0.0 (supersedes the 0.6.0 default of open question 2); jar `StellarViewRemastered-1.21.1-1.0.0-Fabric.jar`.
+- Jar goes into the Nytheria pack; the original Stellar View jar is removed from the pack.
+- The work must be present in `F:\Coding\Stellar View Remastered` (main checkout), not only in the session worktree.
+- Tell the owner exactly what to upload to CurseForge.
