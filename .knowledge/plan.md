@@ -17,10 +17,10 @@ Status values: open / in progress / in review / done.
 | T5 | R3 optimisation with numbers | before/after: allocation per frame and sky render time, same picture | T4, measuring method from A2 | Opus | done |
 | T6 | Metadata: name, version 0.6.0, credits, links, jar name, licence file in jar, Mod Menu optional, README | jar name and `fabric.mod.json` correct, LICENSE inside the jar | - | Sonnet | done |
 | T7 | R5 pixel-art logo 64x64 -> 512, mod icon | both PNGs in the repo, generator script, nearest-neighbour proven (512 = 64 x 8 blocks) | - | Opus | done |
-| T8 | R4 `CURSEFORGE.md` | summary <= 150 characters, description, credits, MIT | T2-T5 known | Sonnet | in review |
-| T9 | R6 install in the pack, in-game check of R1 and R2 for every shader pack | screenshots day/night, shaders on/off without restart, pack launches | T2-T6, game lock | lead | in progress |
+| T8 | R4 `CURSEFORGE.md` | summary <= 150 characters, description, credits, MIT | T2-T5 known | Sonnet | done |
+| T9 | R6 install in the pack, in-game check of R1 and R2 for every shader pack | screenshots day/night, shaders on/off without restart, pack launches | T2-T6, game lock | lead | done (Derivative, static sky, instancing off not run: owner stopped further tests) |
 | T10 | Is the pack's shader-side double-sun workaround still needed? | answer with evidence in the report | T9 | lead | done (answer: not needed any more; left in place) |
-| T11 | Final acceptance, `report.md`, push, line in `F:\Coding\.knowledge\log.md` | full build, no leftovers | all | lead | open |
+| T11 | Final acceptance, `report.md`, push, line in `F:\Coding\.knowledge\log.md` | full build, no leftovers | all | lead | in progress |
 
 Parallel: A1 + A2 now. T2 + T3 + T6 + T7 touch different files (T3 owns config/lang/screens, T2 only `LunaRenderer`/`Luna`, T6 metadata/build files, T7 logo files).
 

@@ -52,3 +52,7 @@
 - 2026-10-08 Version bump delegated (Sonnet) and done: `gradle.properties` mod_version 1.0.0, no other hard-coded version. Lead: build exit 0, jar `StellarViewRemastered-1.21.1-1.0.0-Fabric.jar` (600,552 bytes, sha256 8252fc98...), `fabric.mod.json` version `1.0.0-Fabric`. Committed.
 - 2026-10-08 T8b returned (Sonnet) incl. correction 1 (version 1.0.0): `CURSEFORGE.md` and `README.md` final except the shader pack list marker, which waits for runs f3-f5. Read by lead.
 - 2026-10-08 Final sequence: f2 (Complementary + Euphoria, final jar) 16/16 ok.
+- 2026-10-08 Final sequence: f3 (Complementary, final code) 16/16 ok. Owner asked why so much testing: remaining queued runs (BSL, Derivative, static sky, instancing off, untextured) stopped by the lead; they are on the manual checklist.
+- 2026-10-08 Pack: 0.6.0 test jar replaced by `mods/StellarViewRemastered-1.21.1-1.0.0-Fabric.jar` (sha256 8252fc98...). Launch check r1 with BSL: 16/16 steps, log `stellarview 1.0.0-Fabric`, paused / resumed / paused, screenshots show the shader's sun and moon with shaders on and Stellar View's with shaders off. Restore verified.
+- 2026-10-08 Pack clean-up: the three Iris option files that Iris had rewritten during the toggles (BSL, Complementary, Complementary + Euphoria) put back to their committed content (pack `git status` clean for `shaderpacks/*.txt`). `config/stellarview-client.toml` never changed. Game lock released 19:35.
+- 2026-10-08 `report.md` written.
