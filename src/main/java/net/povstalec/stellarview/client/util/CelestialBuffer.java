@@ -21,6 +21,12 @@ import net.povstalec.stellarview.client.render.shader.CelestialShaderInstance;
 
 public class CelestialBuffer implements AutoCloseable
 {
+	static final String[] SAMPLER_NAMES = new String[]
+			{
+					"Sampler0", "Sampler1", "Sampler2", "Sampler3", "Sampler4", "Sampler5",
+					"Sampler6", "Sampler7", "Sampler8", "Sampler9", "Sampler10", "Sampler11"
+			};
+	
 	private int vertexBufferId;
 	private int indexBufferId;
 	private int arrayObjectId;
@@ -40,28 +46,35 @@ public class CelestialBuffer implements AutoCloseable
 		this.arrayObjectId = GlStateManager._glGenVertexArrays();
 	}
 	
-	public void upload(MeshData mesh)
+	public void upload(@Nullable MeshData mesh)
 	{
-		if(!this.isInvalid())
+		try
 		{
+			if(this.isInvalid())
+				return;
+			
 			RenderSystem.assertOnRenderThread();
-			try
+			if(mesh == null) // BufferBuilder returns no mesh when no vertices were added, in which case there is nothing to draw
 			{
-				final var drawState = mesh.drawState();
-				this.format = this.uploadVertexBuffer(mesh, mesh.vertexBuffer());
-				this.sequentialIndices = this.uploadIndexBuffer(mesh, mesh.indexBuffer());
-				this.indexCount = drawState.indexCount();
-				this.indexType = drawState.indexType();
-				this.mode = drawState.mode();
+				this.indexCount = 0;
+				return;
 			}
-			finally
-			{
+			
+			final var drawState = mesh.drawState();
+			this.format = this.uploadVertexBuffer(mesh, mesh.vertexBuffer());
+			this.sequentialIndices = this.uploadIndexBuffer(mesh, mesh.indexBuffer());
+			this.indexCount = drawState.indexCount();
+			this.indexType = drawState.indexType();
+			this.mode = drawState.mode();
+		}
+		finally
+		{
+			if(mesh != null)
 				mesh.close();
-			}
 		}
 	}
 	
-	private VertexFormat uploadVertexBuffer(MeshData mesh, ByteBuffer vertexBuffer)
+	private VertexFormat uploadVertexBuffer(MeshData mesh, @Nullable ByteBuffer vertexBuffer)
 	{
 		final var drawState = mesh.drawState();
 		boolean formatEquals = false;
@@ -75,7 +88,7 @@ public class CelestialBuffer implements AutoCloseable
 			formatEquals = true;
 		}
 		
-		if(mesh.indexBuffer() == null)
+		if(vertexBuffer != null)
 		{
 			if(!formatEquals)
 				GlStateManager._glBindBuffer(GL15C.GL_ARRAY_BUFFER, this.vertexBufferId);
@@ -87,10 +100,10 @@ public class CelestialBuffer implements AutoCloseable
 	}
 	
 	@Nullable
-	private RenderSystem.AutoStorageIndexBuffer uploadIndexBuffer(MeshData mesh, ByteBuffer indexBuffer)
+	private RenderSystem.AutoStorageIndexBuffer uploadIndexBuffer(MeshData mesh, @Nullable ByteBuffer indexBuffer)
 	{
 		final var drawState = mesh.drawState();
-		if(mesh.vertexBuffer() == null)
+		if(indexBuffer != null)
 		{
 			GlStateManager._glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.indexBufferId);
 			RenderSystem.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15C.GL_STATIC_DRAW);
@@ -120,6 +133,9 @@ public class CelestialBuffer implements AutoCloseable
 	
 	public void draw()
 	{
+		if(this.indexCount == 0)
+			return;
+		
 		RenderSystem.drawElements(this.mode.asGLMode, this.indexCount, this.getIndexType().asGLType);
 	}
 	
@@ -161,10 +177,13 @@ public class CelestialBuffer implements AutoCloseable
 	
 	private void _drawWithShader(Matrix4f modelViewMatrix, Matrix4f projectionMatrix, ShaderInstance shaderInstance)
 	{
-		for(int i = 0; i < 12; ++i)
+		if(this.indexCount == 0) // Nothing was uploaded
+			return;
+		
+		for(int i = 0; i < SAMPLER_NAMES.length; ++i)
 		{
 			int j = RenderSystem.getShaderTexture(i);
-			shaderInstance.setSampler("Sampler" + i, j);
+			shaderInstance.setSampler(SAMPLER_NAMES[i], j);
 		}
 		
 		if(shaderInstance.MODEL_VIEW_MATRIX != null)

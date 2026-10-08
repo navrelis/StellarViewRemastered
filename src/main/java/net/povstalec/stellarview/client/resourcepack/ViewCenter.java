@@ -114,7 +114,7 @@ public class ViewCenter
 			Optional<MeteorEffect.ShootingStar> shootingStar, Optional<MeteorEffect.MeteorShower> meteorShower,
 			boolean createHorizon, boolean createVoid, ViewCenter.Stars stars, ViewCenter.Fog fog, int zRotationMultiplier)
 	{
-		this.levelTicks = 0;
+		this.levelTicks = -1; // Not a value the level renderer starts with, so the first rendered frame always updates the ticks
 		this.updateTicks = false;
 		
 		this.ticks = 0;
@@ -146,6 +146,24 @@ public class ViewCenter
 		this.stars = stars;
 		this.fog = fog;
 		this.zRotationMultiplier = zRotationMultiplier;
+	}
+	
+	/**
+	 * Releases the sky buffers, needs to be called on the render thread once the View Center is no longer used
+	 */
+	public void close()
+	{
+		if(skyBuffer != null)
+		{
+			skyBuffer.close();
+			skyBuffer = null;
+		}
+		
+		if(darkBuffer != null)
+		{
+			darkBuffer.close();
+			darkBuffer = null;
+		}
 	}
 	
 	public void setViewObjectRenderer(ViewObjectRenderer<?> object)
@@ -378,8 +396,12 @@ public class ViewCenter
 		
 		if(updateTicks)
 		{
-			this.oldTicks = this.ticks;
-			this.ticks = GeneralConfig.tick_multiplier.get() * (GeneralConfig.use_game_ticks.get() ? level.getGameTime() : level.getDayTime());
+			long tickStep = GeneralConfig.tick_multiplier.get();
+			long newTicks = tickStep * (GeneralConfig.use_game_ticks.get() ? level.getGameTime() : level.getDayTime());
+			
+			// Interpolation always covers a single step, otherwise orbits would sweep across the whole difference after a time jump
+			this.oldTicks = newTicks == this.ticks ? newTicks : newTicks - tickStep; // Stands still when time doesn't advance
+			this.ticks = newTicks;
 		}
 		this.starBrightness = LightEffects.starBrightness(this, level, camera, partialTicks);
 		this.dustCloudBrightness = GeneralConfig.dust_clouds.get() ? LightEffects.dustCloudBrightness(this, level, camera, partialTicks) : 0;
@@ -392,8 +414,10 @@ public class ViewCenter
 		{
 			if(updateTicks)
 			{
-				this.oldDayTicks = this.dayTicks;
-				this.dayTicks = level.getDayTime();
+				long newDayTicks = level.getDayTime();
+				
+				this.oldDayTicks = newDayTicks == this.dayTicks ? newDayTicks : newDayTicks - 1; // Same as above, a day tick step is 1
+				this.dayTicks = newDayTicks;
 			}
 			double rotation = 2 * Math.PI * getTimeOfDay(partialTicks) + Math.PI;
 			
@@ -423,10 +447,10 @@ public class ViewCenter
 	
 	public boolean renderSky(ClientLevel level, int ticks, float partialTicks, Matrix4f modelViewMatrix, Camera camera, Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog)
 	{
-		minecraft.getProfiler().push(StellarView.MODID);
-		
 		if(viewObject == null && skyboxes == null)
 			return false;
+		
+		minecraft.getProfiler().push(StellarView.MODID);
 		
 		if(this.levelTicks != ticks)
 		{
@@ -449,7 +473,7 @@ public class ViewCenter
 			RenderSystem.setShaderColor(skyX, skyY, skyZ, 1.0F);
 			ShaderInstance shaderinstance = RenderSystem.getShader();
 			
-			if(createHorizon)
+			if(createHorizon && this.skyBuffer != null)
 			{
 				this.skyBuffer.bind();
 				this.skyBuffer.drawWithShader(modelViewMatrix, projectionMatrix, shaderinstance);
@@ -473,10 +497,11 @@ public class ViewCenter
 			//RenderSystem.disableTexture();
 			//RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 			RenderSystem.disableBlend();
+			RenderSystem.defaultBlendFunc();
 			
 			RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
 			
-			if(createVoid)
+			if(createVoid && this.darkBuffer != null)
 			{
 				double height = this.minecraft.player.getEyePosition(partialTicks).y - level.getLevelData().getHorizonHeight(level);
 				if(height < 0.0D)
@@ -520,7 +545,7 @@ public class ViewCenter
 		private final float dayMaxVisibleSize;
 		
 		public static final Codec<DayBlending> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-				Codec.floatRange(0, Float.MAX_VALUE).optionalFieldOf("max_brightness", DAY_MAX_BRIGHTNESS).forGetter(dayBlending -> dayBlending.dayMinVisibleSize),
+				Codec.floatRange(0, Float.MAX_VALUE).optionalFieldOf("max_brightness", DAY_MAX_BRIGHTNESS).forGetter(dayBlending -> dayBlending.dayMaxBrightness),
 				
 				Codec.floatRange(0, Float.MAX_VALUE).optionalFieldOf("min_visible_size", DAY_MIN_VISIBLE_SIZE).forGetter(dayBlending -> dayBlending.dayMinVisibleSize),
 				Codec.floatRange(0, Float.MAX_VALUE).optionalFieldOf("max_visible_size", DAY_MAX_VISIBLE_SIZE).forGetter(dayBlending -> dayBlending.dayMaxVisibleSize)

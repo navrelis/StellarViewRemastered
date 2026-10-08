@@ -21,6 +21,11 @@ public final class ViewCenters
 	
 	public static void clear()
 	{
+		for(ViewCenter viewCenter : VIEW_CENTER_MAP.values())
+		{
+			viewCenter.close();
+		}
+		
 		VIEW_CENTER_MAP.clear();
 	}
 	

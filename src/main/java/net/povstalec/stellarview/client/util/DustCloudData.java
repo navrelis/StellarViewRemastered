@@ -66,6 +66,10 @@ public abstract class DustCloudData
 		@Nullable
 		protected CelestialInstancedBuffer instancedDustCloudBuffer;
 		
+		// What dustCloudBuffer was built for, a static buffer is only valid for the offset it was built with
+		private boolean staticBuffer;
+		private double staticX, staticY, staticZ;
+		
 		private double[] dustCloudCoords;
 		private double[] dustCloudSizes;
 		
@@ -251,12 +255,25 @@ public abstract class DustCloudData
 			if(dustClouds == 0)
 				return;
 			
+			if(dustCloudBuffer != null && isOutdated(difference, isStatic)) // Buffer was built for a different sky
+			{
+				dustCloudBuffer.close();
+				dustCloudBuffer = null;
+			}
+			
 			if(dustCloudBuffer == null) // Buffer requires setup
 			{
 				if(!SpaceRenderer.loadNewDustClouds())
 					return;
 				
 				dustCloudBuffer = new CelestialBuffer();
+				staticBuffer = isStatic;
+				if(isStatic)
+				{
+					staticX = difference.x().toLy();
+					staticY = difference.y().toLy();
+					staticZ = difference.z().toLy();
+				}
 				
 				Tesselator tesselator = Tesselator.getInstance();
 				RenderSystem.setShader(GameRenderer::getPositionShader);
@@ -290,12 +307,12 @@ public abstract class DustCloudData
 			
 			if(instancedDustCloudBuffer == null) // Buffer requires setup
 			{
-				if(!SpaceRenderer.loadNewStars())
+				if(!SpaceRenderer.loadNewDustClouds())
 					return;
 				
 				instancedDustCloudBuffer = new CelestialInstancedBuffer();
 				instancedDustCloudBuffer.upload(getInstancedDustClouds(), true);
-				SpaceRenderer.loadedStars(dustClouds);
+				SpaceRenderer.loadedDustClouds(dustClouds);
 			}
 			
 			instancedDustCloudBuffer.bind();
@@ -306,6 +323,14 @@ public abstract class DustCloudData
 		//============================================================================================
 		//*******************************************Static*******************************************
 		//============================================================================================
+		
+		private boolean isOutdated(SpaceCoords difference, boolean isStatic)
+		{
+			if(staticBuffer != isStatic)
+				return true;
+			
+			return isStatic && StarData.movedAway(difference, staticX, staticY, staticZ);
+		}
 		
 		public MeshData getStaticDustCloudBuffer(Tesselator tesselator, SpaceCoords difference)
 		{

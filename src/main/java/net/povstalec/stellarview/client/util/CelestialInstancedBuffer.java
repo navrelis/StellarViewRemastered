@@ -162,10 +162,10 @@ public class CelestialInstancedBuffer implements AutoCloseable
 	
 	private void _drawWithShader(Matrix4f modelViewMatrix, Matrix4f projectionMatrix, Vector3f relativeSpaceLy, Vector3f relativeSpaceKm, CelestialShaderInstance shaderInstance, int instances)
 	{
-		for(int i = 0; i < 12; ++i)
+		for(int i = 0; i < CelestialBuffer.SAMPLER_NAMES.length; ++i)
 		{
 			int j = RenderSystem.getShaderTexture(i);
-			shaderInstance.setSampler("Sampler" + i, j);
+			shaderInstance.setSampler(CelestialBuffer.SAMPLER_NAMES[i], j);
 		}
 		
 		if(shaderInstance.MODEL_VIEW_MATRIX != null)

@@ -24,6 +24,8 @@ public abstract class StarData
 	public static final float DEFAULT_DISTANCE = 100;
 	public static final float MIN_STAR_SIZE = 0.02F;
 	public static final float MIN_TEX_STAR_SIZE = 0.08F;
+	/** Distance in light years the View Center has to move away from where a static buffer was built before the buffer gets rebuilt */
+	public static final double STATIC_REBUILD_DISTANCE = 0.01;
 	
 	public static final int HEIGHT_OFFSET = 0;
 	public static final int WIDTH_OFFSET = HEIGHT_OFFSET + Float.BYTES;
@@ -113,6 +115,20 @@ public abstract class StarData
 		}
 	}
 	
+	/**
+	 * @param difference Current offset between the View Center and the rendered object
+	 * @param x X offset in light years a static buffer was built with
+	 * @param y Y offset in light years a static buffer was built with
+	 * @param z Z offset in light years a static buffer was built with
+	 * @return True if the offset has changed enough for the static buffer to no longer match the sky
+	 */
+	public static boolean movedAway(SpaceCoords difference, double x, double y, double z)
+	{
+		return Math.abs(difference.x().toLy() - x) > STATIC_REBUILD_DISTANCE
+				|| Math.abs(difference.y().toLy() - y) > STATIC_REBUILD_DISTANCE
+				|| Math.abs(difference.z().toLy() - z) > STATIC_REBUILD_DISTANCE;
+	}
+	
 	
 	
 	public static class LOD
@@ -121,6 +137,10 @@ public abstract class StarData
 		private CelestialBuffer starBuffer;
 		@Nullable
 		private CelestialInstancedBuffer instancedStarBuffer;
+		
+		// What starBuffer was built for, a static buffer is only valid for the offset it was built with
+		private boolean staticBuffer;
+		private double staticX, staticY, staticZ;
 		
 		private double[] starCoords;
 		private double[] starSizes;
@@ -355,12 +375,25 @@ public abstract class StarData
 			if(stars == 0)
 				return;
 			
+			if(starBuffer != null && isOutdated(difference, isStatic)) // Buffer was built for a different sky
+			{
+				starBuffer.close();
+				starBuffer = null;
+			}
+			
 			if(starBuffer == null) // Buffer requires setup
 			{
 				if(!SpaceRenderer.loadNewStars())
 					return;
 				
 				starBuffer = new CelestialBuffer();
+				staticBuffer = isStatic;
+				if(isStatic)
+				{
+					staticX = difference.x().toLy();
+					staticY = difference.y().toLy();
+					staticZ = difference.z().toLy();
+				}
 				
 				Tesselator tesselator = Tesselator.getInstance();
 				RenderSystem.setShader(GameRenderer::getPositionShader);
@@ -411,6 +444,15 @@ public abstract class StarData
 		//*******************************************Static*******************************************
 		//============================================================================================
 		
+		private boolean isOutdated(SpaceCoords difference, boolean isStatic)
+		{
+			if(staticBuffer != isStatic)
+				return true;
+			
+			return isStatic && movedAway(difference, staticX, staticY, staticZ);
+		}
+		
+		@Nullable
 		public MeshData getStaticStarBuffer(Tesselator tesselator, boolean hasTexture, SpaceCoords difference)
 		{
 			final var bufferBuilder = tesselator.begin(VertexFormat.Mode.QUADS, hasTexture ? DefaultVertexFormat.POSITION_TEX_COLOR : DefaultVertexFormat.POSITION_COLOR);

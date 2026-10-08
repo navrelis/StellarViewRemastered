@@ -147,4 +147,28 @@ public class SpaceRegionRenderer
 			constellation.reset();
 		}
 	}
+	
+	/**
+	 * Releases the buffers of every Star Field and Constellation in this region, regardless of whether the region has been set up
+	 */
+	public void releaseBuffers()
+	{
+		for(SpaceObjectRenderer<?> child : children)
+		{
+			releaseBuffers(child);
+		}
+	}
+	
+	private static void releaseBuffers(SpaceObjectRenderer<?> renderer)
+	{
+		if(renderer instanceof StarFieldRenderer<?> starField)
+			starField.reset();
+		else if(renderer instanceof ConstellationRenderer<?> constellation)
+			constellation.reset();
+		
+		for(SpaceObjectRenderer<?> child : renderer.children())
+		{
+			releaseBuffers(child);
+		}
+	}
 }

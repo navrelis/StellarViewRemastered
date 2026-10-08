@@ -50,9 +50,6 @@ public final class SpaceRenderer
 	
 	public static void updateSpaceObjects()
 	{
-		if(Minecraft.getInstance().level == null)
-			return;
-		
 		SpaceRenderer.updateSol();
 		SpaceRenderer.resetStarFields();
 	}
@@ -79,6 +76,12 @@ public final class SpaceRenderer
 	
 	public static void clear()
 	{
+		// Buffers of the old renderers have to be released before the renderers are dropped
+		for(Map.Entry<SpaceRegion.RegionPos, SpaceRegionRenderer> spaceRegionEntry : SPACE_REGIONS.entrySet())
+		{
+			spaceRegionEntry.getValue().releaseBuffers();
+		}
+		
 		sol = null;
 		solCoords = null;
 		solAxisRotation = null;

@@ -190,6 +190,8 @@ public class ResourcepackReloadListener
 				// Set the View Center's Space Object if it exists, if it doesn't, don't add it to View Center Map
 				if(viewCenterEntry.getValue().setViewObjectRenderer(spaceObjects))
 					ViewCenters.addViewCenter(viewCenterEntry.getKey(), viewCenterEntry.getValue());
+				else
+					viewCenterEntry.getValue().close(); // View Center is dropped, so its buffers need to be released
 			}
 		}
 		

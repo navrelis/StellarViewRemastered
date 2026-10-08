@@ -104,34 +104,42 @@ public class ConstellationRenderer<T extends Constellation> extends SpaceObjectR
 	@Override
 	public void render(ViewCenter viewCenter, ClientLevel level, float partialTicks, Matrix4f modelViewMatrix, Camera camera, Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog, Tesselator tesselator, Vector3f parentVector, AxisRotation parentRotation)
 	{
-		SpaceCoords difference = viewCenter.getCoords().sub(spaceCoords());
-		
-		if(starData == null)
-			setStars();
-		else if(requiresReset())
+		if(shouldRender()) // Otherwise the stars are a part of the parent Star Field, which renders them
 		{
-			hasTexture = GeneralConfig.textured_stars.get();
-			starData.reset();
-		}
-		
-		if(!GeneralConfig.disable_stars.get() && viewCenter.starBrightness() > 0.0F)
-		{
-			final var transformedModelView = new Matrix4f(modelViewMatrix);
+			SpaceCoords difference = viewCenter.getCoords().sub(spaceCoords());
 			
-			//stack.translate(0, 0, 0);
-			if(hasTexture)
-				RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-			RenderSystem.setShaderColor(1, 1, 1, viewCenter.starBrightness());
-			if(hasTexture)
-				RenderSystem.setShaderTexture(0, getStarTexture());
-			FogRenderer.setupNoFog();
+			if(starData == null)
+				setStars();
+			else if(requiresReset())
+			{
+				hasTexture = GeneralConfig.textured_stars.get();
+				starData.reset();
+			}
 			
-			Quaternionf q = SpaceCoords.getQuaternionf(level, viewCenter, partialTicks);
-			
-			transformedModelView.rotate(q);
-			this.starData.renderStars(StarField.LevelOfDetail.fromDistance(difference), transformedModelView, projectionMatrix, difference, viewCenter.isStatic(), hasTexture);
-			
-			setupFog.run();
+			if(!GeneralConfig.disable_stars.get() && viewCenter.starBrightness() > 0.0F)
+			{
+				final var transformedModelView = new Matrix4f(modelViewMatrix);
+				
+				//stack.translate(0, 0, 0);
+				if(hasTexture)
+					RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+				RenderSystem.setShaderColor(1, 1, 1, viewCenter.starBrightness());
+				if(hasTexture)
+					RenderSystem.setShaderTexture(0, getStarTexture());
+				boolean isStatic = viewCenter.isStatic();
+				if(isStatic) // Star shaders have no fog, only the vanilla shaders used for the static sky can have it once a shader pack replaces them
+					FogRenderer.setupNoFog();
+				
+				Quaternionf q = SpaceCoords.getQuaternionf(level, viewCenter, partialTicks);
+				
+				transformedModelView.rotate(q);
+				this.starData.renderStars(StarField.LevelOfDetail.fromDistance(difference), transformedModelView, projectionMatrix, difference, isStatic, hasTexture);
+				
+				if(isStatic)
+					setupFog.run();
+				if(hasTexture)
+					RenderSystem.defaultBlendFunc();
+			}
 		}
 		
 		for(SpaceObjectRenderer<?> child : children)
