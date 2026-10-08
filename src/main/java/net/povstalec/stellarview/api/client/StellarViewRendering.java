@@ -46,7 +46,7 @@ public class StellarViewRendering
 	 * @param projectionMatrix Current projection matrix
 	 * @param isFoggy Whether it is foggy or not
 	 * @param setupFog Function to set up fog
-	 * @return true if the View Center was found and rendered successfully, otherwise false
+	 * @return true if the View Center was found and rendered successfully, otherwise false (also false while an Iris shader pack is in use and the "Disable With Shaders" option is on)
 	 */
 	public static boolean renderViewCenterSky(ResourceLocation location, ClientLevel level, int ticks, float partialTicks, Matrix4f modelViewMatrix, Camera camera, Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog)
 	{
@@ -64,7 +64,7 @@ public class StellarViewRendering
 	 * @param projectionMatrix Current projection matrix
 	 * @param isFoggy Whether it is foggy or not
 	 * @param setupFog Function to set up fog
-	 * @return true if the View Center was found and rendered successfully, otherwise false
+	 * @return true if the View Center was found and rendered successfully, otherwise false (also false while an Iris shader pack is in use and the "Disable With Shaders" option is on)
 	 */
 	public static boolean renderViewCenterSky(ClientLevel level, int ticks, float partialTicks, Matrix4f modelViewMatrix, Camera camera, Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog)
 	{

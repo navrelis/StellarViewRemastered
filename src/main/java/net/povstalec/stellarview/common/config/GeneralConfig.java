@@ -4,6 +4,7 @@ public class GeneralConfig
 {
 	public static final String PREFIX = "client.general";
 	
+	public static StellarViewConfigValue.BooleanValue disable_with_shaders;
 	public static StellarViewConfigValue.BooleanValue static_sky;
 	public static StellarViewConfigValue.BooleanValue instancing;
 	public static StellarViewConfigValue.BooleanValue alt_vertex_build_order;
@@ -26,6 +27,10 @@ public class GeneralConfig
 	
 	public static void init(StellarViewConfigSpec.Builder client)
 	{
+		disable_with_shaders = new StellarViewConfigValue.BooleanValue(client, "client.disable_with_shaders",
+				true,
+				"Hands the sky over to the shader pack while an Iris shader pack is active. Stellar View's sky returns as soon as shaders are turned off");
+		
 		static_sky = new StellarViewConfigValue.BooleanValue(client, "client.static_sky",
 				false,
 				"Makes the sky static (compatible with shaders)");
@@ -46,7 +51,7 @@ public class GeneralConfig
 		
 		tick_multiplier = new StellarViewConfigValue.IntValue(client, "client.tick_multiplier",
 				1, 1, 1000,
-				"Specifies the max distance at which a Space Region can render");
+				"Multiplies the speed at which time passes for orbits and other sky effects");
 
 		
 		

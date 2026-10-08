@@ -13,6 +13,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.povstalec.stellarview.StellarView;
+import net.povstalec.stellarview.compatibility.iris.IrisCompatibility;
 
 public final class ViewCenters
 {
@@ -50,6 +51,9 @@ public final class ViewCenters
 	
 	public static boolean renderViewCenterSky(ResourceLocation location, ClientLevel level, int ticks, float partialTicks, Matrix4f modelViewMatrix, Camera camera, Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog)
 	{
+		if(IrisCompatibility.shouldYieldSky())
+			return false; // Vanilla (and through it the shader pack) renders the sky
+		
 		if(!isViewCenterPresent(location))
 			return false; // False because we're not replacing any rendering
 		

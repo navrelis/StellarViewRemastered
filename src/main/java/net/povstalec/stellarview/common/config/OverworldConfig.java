@@ -13,6 +13,7 @@ public class OverworldConfig
 	public static StellarViewConfigValue.IntValue shooting_star_chance;
 	
 	public static StellarViewConfigValue.BooleanValue vanilla_moon;
+	public static StellarViewConfigValue.BooleanValue vanilla_moon_cycle;
 	
 	public static StellarViewConfigValue.IntValue sol_x_offset;
 	public static StellarViewConfigValue.IntValue sol_y_offset;
@@ -60,6 +61,10 @@ public class OverworldConfig
 		vanilla_moon = new StellarViewConfigValue.BooleanValue(client, PREFIX + "vanilla_moon",
 				false,
 				"Uses the Vanilla Moon texture for rendering");
+		
+		vanilla_moon_cycle = new StellarViewConfigValue.BooleanValue(client, PREFIX + "vanilla_moon_cycle",
+				true,
+				"Keeps the Moon opposite the Sun like in Vanilla: it rises at sunset, sets at sunrise and is not in the daytime sky. Set to false for the realistic lunar orbit, where the Moon can also be seen during the day");
 		
 		
 		

@@ -39,6 +39,9 @@ public class GeneralConfigScreen extends Screen
 		this.configList = new ConfigList(minecraft, this.width,
 				this.height - OPTIONS_LIST_HEADER_HEIGHT - OPTIONS_LIST_BOTTOM_OFFSET, OPTIONS_LIST_HEADER_HEIGHT, OPTIONS_LIST_ITEM_HEIGHT);
 		
+		this.configList.add(new BooleanConfigEntry(Component.translatable("gui.stellarview.disable_with_shaders"),
+				this.width, GeneralConfig.disable_with_shaders));
+		
 		this.configList.add(new BooleanConfigEntry(Component.translatable("gui.stellarview.static_sky"),
 				this.width, GeneralConfig.static_sky));
 		if(CelestialInstancedBuffer.INSTANCING_PREREQUISITES)

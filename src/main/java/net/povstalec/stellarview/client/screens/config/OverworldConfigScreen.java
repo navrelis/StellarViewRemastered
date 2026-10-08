@@ -52,6 +52,8 @@ public class OverworldConfigScreen extends Screen
 		
 		this.configList.add(new BooleanConfigEntry(Component.translatable("gui.stellarview.vanilla_moon"),
 				this.width, OverworldConfig.vanilla_moon));
+		this.configList.add(new BooleanConfigEntry(Component.translatable("gui.stellarview.vanilla_moon_cycle"),
+				this.width, OverworldConfig.vanilla_moon_cycle));
 		
 		this.configList.add(new ConfigList.SliderConfigEntry(Component.translatable("gui.stellarview.overworld_z_rotation_multiplier").append(Component.literal(": ")),
 				Component.empty(),

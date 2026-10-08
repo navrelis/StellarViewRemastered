@@ -18,6 +18,7 @@ public class StellarView implements ModInitializer
 	public static final String TWILIGHT_FOREST_MODID = "twilightforest";
 	public static final String AETHER_MODID = "aether";
 	public static final String KILT_MODID = "kilt";
+	public static final String IRIS_MODID = "iris";
 	
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.

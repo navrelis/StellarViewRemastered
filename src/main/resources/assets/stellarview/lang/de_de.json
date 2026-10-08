@@ -9,10 +9,12 @@
 	"gui.stellarview.config.aether": "Aether Konfiguration",
 	
 	"gui.stellarview.vanilla_moon": "Vanilla Mond",
+	"gui.stellarview.vanilla_moon_cycle": "Vanilla-Mondzyklus",
 	"gui.stellarview.use_game_ticks": "Spiel Ticks verwenden",
 	"gui.stellarview.tick_multiplier": "Tickmultiplikator",
 	"gui.stellarview.disable_view_center_rotation": "Deaktivieren der Ansichtszentrumrotation",
 	"gui.stellarview.gravitational_lensing": "Gravitationslinseneffekt",
+	"gui.stellarview.disable_with_shaders": "Mit Shadern deaktivieren",
 	"gui.stellarview.static_sky": "[Shader compat] Statische Himmel",
 	"gui.stellarview.disable_stars": "Sterne deaktivieren",
 	"gui.stellarview.day_stars": "Sterne am Tag",
