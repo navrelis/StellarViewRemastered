@@ -2,15 +2,22 @@
 	"schemaVersion": 1,
 	"id": "stellarview",
 	"version": "${version}",
-	"name": "Stellar View",
-	"description": "Enjoy a Stellar View of the Sky",
+	"name": "Stellar View Remastered",
+	"description": "A maintained fork of Stellar View, a better night sky that keeps the Vanilla feeling. Adds a vanilla-like moon cycle, automatic hand-over of the sky to Iris shader packs, bug fixes and optimisations.",
 	"authors": [
-		"Woldericz_Junior"
+		"Woldericz_Junior (Povstalec) - original author",
+		"navrelis - Remastered"
+	],
+	"contributors": [
+		"Noobly Walker",
+		"tehgreatdoge",
+		"Erdragh",
+		"tristankechlo"
 	],
 	"contact": {
-		"homepage": "https://moddedmc.wiki/cs/project/stellarview/docs",
-		"sources": "https://github.com/Povstalec/StellarView",
-		"issues": "https://github.com/Povstalec/StellarView/issues"
+		"homepage": "https://github.com/navrelis/StellarViewRemastered",
+		"sources": "https://github.com/navrelis/StellarViewRemastered",
+		"issues": "https://github.com/navrelis/StellarViewRemastered/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/stellarview/icon.png",
@@ -27,12 +34,20 @@
 		"fabricloader": ">=0.16.14",
 		"minecraft": "~1.21.1",
 		"java": ">=21",
-		"fabric-api": "*",
-		
+		"fabric-api": "*"
+	},
+	"recommends": {
 		"modmenu": "*"
 	},
 	"suggests": {
 		"enhancedcelestials": "*",
 		"lunar": ">=0.2.6"
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"modmenu.wiki": "https://moddedmc.wiki/cs/project/stellarview/docs"
+			}
+		}
 	}
 }

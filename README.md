@@ -1,17 +1,17 @@
-# Stellar View
-[![Modrinth Downloads](https://img.shields.io/modrinth/dt/Iairjv0A?style=for-the-badge&logo=modrinth&label=Modrinth)](https://modrinth.com/mod/stellarview)
-[![Curseforge Downloads](https://cf.way2muchnoise.eu/865273.svg?badge_style=for_the_badge)](https://www.curseforge.com/minecraft/mc-mods/stellarview)
+# Stellar View Remastered
 
-Stellar View helps your sky look just a bit better while keeping the Vanilla feeling.
+Stellar View Remastered is a maintained fork of [Stellar View](https://github.com/Povstalec/StellarView) by Povstalec, a Fabric mod that improves the night sky while keeping the Vanilla feeling. The original mod is also available on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/stellarview) and [Modrinth](https://modrinth.com/mod/stellarview). This fork is released under the MIT licence, like the original.
 
-This mod is purely Client-side and **does not** need to be installed on a Server to work.
-Which also means it **will not** physically change anything on the server-side and all changes it does make are purely visual.
+## What Remastered changes
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/asiFL_mAE4M/0.jpg)](https://www.youtube.com/watch?v=asiFL_mAE4M)
+- Vanilla-like moon cycle (option, on by default): the Moon stays opposite the Sun and no longer shows in the daytime sky
+- Steps aside for Iris shader packs: while a shader pack is active the shader draws the sky; Stellar View comes back when shaders are turned off, without a restart (option, on by default)
+- Bug fixes
+- Less work per frame
 
-Current Features
+## Features
 
-- Milky Way Galaxy 
+- Milky Way Galaxy
 - Brighter Stars
 - Independent Moon movement
 - Light interference (Stars appear dimmer if you're standing near a light source)
@@ -23,14 +23,29 @@ Current Features
 - Planets and apparent retrograde planetary motion
 - Can be used as a dependency for other mods
 
-Planned Features
+The mod is purely client-side and does not need to be installed on a server. It does not change anything on the server; all changes are visual.
 
-- Sky events (Aurora Borealis, Comets)
+## Requirements
 
-## Contributing
+- Minecraft 1.21.1
+- Fabric Loader 0.16.14 or newer
+- Fabric API
+- Mod Menu is recommended for the config screen
+- Client-side only
 
-This mod uses the [Fabric](https://fabricmc.net/) modding API.
-It's recommended to use IntelliJ with the [mcdev Plugin](https://mcdev.io).
+## Building
 
-Once the Gradle project is imported into IntelliJ you might need to restart it
-so it recognizes the generated run configs.
+This mod uses the [Fabric](https://fabricmc.net/) modding API. Build it with:
+
+```
+gradlew build
+```
+
+The jar is written to `build/libs`.
+
+## Credits and licence
+
+- Original mod: [Stellar View](https://github.com/Povstalec/StellarView) by Povstalec (Woldericz_Junior). Upstream contributors: Noobly Walker, tehgreatdoge, Erdragh, tristankechlo.
+- Remastered: navrelis. Source and issue tracker: [navrelis/StellarViewRemastered](https://github.com/navrelis/StellarViewRemastered).
+- Documentation of the original mod: [moddedmc.wiki](https://moddedmc.wiki/cs/project/stellarview/docs).
+- Licensed under the MIT licence, see `LICENSE.txt`. Copyright (c) 2024 Povstalec, Copyright (c) 2026 navrelis.
