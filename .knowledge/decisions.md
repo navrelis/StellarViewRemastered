@@ -11,3 +11,8 @@
 - Lang keys for the new options only in en_us and de_de: the other three languages fall back to English; no machine translations of unknown quality.
 - Fork has GitHub issues disabled; `fabric.mod.json` points to the fork's issue URL anyway. Enabling issues is a repository setting for the owner (in the report).
 - Old jar backup goes to `F:\Coding\NytheriaDevelopment\mods_backup` (the pack's existing backup folder; the instance has none).
+- Meteor chance fix is kept although it makes meteors much rarer than players of 0.5.3 are used to: the options say "chance" with default 10 and were simply never applied; 100 restores the old frequency. Stated in the changelog.
+- Star alpha fix uses "min when beyond the threshold, otherwise max" (not a smooth clamp): this is what a fresh start of 0.5.3 shows, so the Overworld sky keeps its look.
+- `SpaceRegion` truncating division (audit A22) left as is: intent unclear, nothing changes for the shipped skies at the default render distance.
+- Dead options (`stars_always_visible`, Aether/Twilight `config_priority` and chances, `alt_vertex_build_order`) left in place: removing keys could break add-ons that read them; listed in the report.
+- Perf metric: allocation per frame under the mod's frames (JFR allocation samples / frame count) is the headline number; CPU share is reported with its sampling interval because 10 ms sampling gives under 30 samples per window.

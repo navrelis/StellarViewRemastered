@@ -2,7 +2,6 @@ package net.povstalec.stellarview.client.resourcepack.effects;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import com.mojang.blaze3d.vertex.*;
 import net.povstalec.stellarview.client.render.LightEffects;
@@ -31,6 +30,14 @@ public abstract class MeteorEffect
 	public static final UV.Quad UV = new UV.Quad(false);
 	public static final float DEFAULT_DISTANCE = 100.0F;
 	public static final SphericalCoords SPHERICAL_START = new SphericalCoords(DEFAULT_DISTANCE, 0, 0);
+	
+	// Indices of the independent values derived from a single seed
+	protected static final int SEED_APPEARANCE = 1;
+	protected static final int SEED_METEOR_TYPE = 2;
+	protected static final int SEED_START = 3;
+	protected static final int SEED_X_ROTATION = 4;
+	protected static final int SEED_Y_ROTATION = 5;
+	protected static final int SEED_Z_ROTATION = 6;
 	
 	protected final ArrayList<MeteorType> meteorTypes;
 	protected int totalWeight = 0;
@@ -67,24 +74,52 @@ public abstract class MeteorEffect
 		return rarity;
 	}
 	
+	/**
+	 * Consecutive seeds give almost the same first value when they are used for a new Random, so the seed is mixed instead (SplitMix64)
+	 * @param seed Seed of whatever is being decided, for example the number of the current day
+	 * @param index Which of the values derived from the seed to return
+	 * @return Returns a value that shares no visible pattern with the values of neighboring seeds and indices
+	 */
+	protected static long seededLong(long seed, int index)
+	{
+		long value = seed + index * 0x9E3779B97F4A7C15L;
+		value = (value ^ (value >>> 30)) * 0xBF58476D1CE4E5B9L;
+		value = (value ^ (value >>> 27)) * 0x94D049BB133111EBL;
+		
+		return value ^ (value >>> 31);
+	}
+	
+	/**
+	 * @return Returns a value from 0 (inclusive) to 1 (exclusive)
+	 */
+	protected static double seededDouble(long seed, int index)
+	{
+		return (seededLong(seed, index) >>> 11) * 0x1.0p-53;
+	}
+	
+	/**
+	 * @return Returns a value from origin (inclusive) to bound (exclusive)
+	 */
+	protected static int seededInt(long seed, int index, int origin, int bound)
+	{
+		return origin + (int) Math.floorMod(seededLong(seed, index), (long) (bound - origin));
+	}
+	
 	protected boolean shouldAppear(ViewCenter viewCenter, long seed)
 	{
-		Random random = new Random(seed);
-		
-		return random.nextDouble() <= getRarity(viewCenter);
+		// Rarity is a chance in percent, 0 never appears and 100 always does
+		return seededDouble(seed, SEED_APPEARANCE) * 100 < getRarity(viewCenter);
 	}
 	
 	protected MeteorType getRandomMeteorType(long seed)
 	{
-		Random random = new Random(seed);
-		
 		int i = 0;
 		
-		for(int weight = random.nextInt(0, totalWeight); i < meteorTypes.size() - 1; i++)
+		for(int weight = seededInt(seed, SEED_METEOR_TYPE, 0, totalWeight); i < meteorTypes.size() - 1; i++)
 		{
 			weight -= meteorTypes.get(i).getWeight();
 			
-			if(weight <= 0)
+			if(weight < 0)
 				break;
 		}
 		
@@ -237,21 +272,16 @@ public abstract class MeteorEffect
 			long tickSeed = viewCenter.ticks() / TICKS;
 			int specificTime = (int) (viewCenter.ticks() % TICKS);
 			
-			Random randomizer = new Random(tickSeed);
-			
-			int randomStart = randomizer.nextInt(0, TICKS - DURATION);
+			int randomStart = seededInt(tickSeed, SEED_START, 0, TICKS - DURATION);
 			
 			if(shouldAppear(viewCenter, tickSeed) && specificTime >= randomStart && specificTime < randomStart + DURATION)
 			{
-				double position = viewCenter.ticks() % DURATION;
+				// Counted from the start of the flight and seeded by its period, so the shooting star keeps a single direction for the whole flight
+				double position = specificTime - randomStart;
 				
-				long shootingStarRandomizer = viewCenter.ticks() / DURATION;
-				
-				Random random = new Random(shootingStarRandomizer);
-				
-				float xRotation = (float) (random.nextInt(0, 45) + Math.PI * Mth.lerp(partialTicks, position - 1, position));
-				float yRotation = random.nextInt(0, 360);
-				float zRotation = random.nextInt(-70, 70);
+				float xRotation = (float) (seededInt(tickSeed, SEED_X_ROTATION, 0, 45) + Math.PI * Mth.lerp(partialTicks, position - 1, position));
+				float yRotation = seededInt(tickSeed, SEED_Y_ROTATION, 0, 360);
+				float zRotation = seededInt(tickSeed, SEED_Z_ROTATION, -70, 70);
 				
 				MeteorType meteorType = getRandomMeteorType(tickSeed);
 				
@@ -300,19 +330,18 @@ public abstract class MeteorEffect
 			if(!canRender(viewCenter))
 				return;
 			
-			long dailySeed = viewCenter.ticks() / (viewCenter.getRotationPeriod() == 0 ? 24000L : viewCenter.getRotationPeriod());
+			// Seeds are inverted, that way a day or meteor doesn't share its values with the shooting star period of the same number
+			long dailySeed = ~(viewCenter.ticks() / (viewCenter.getRotationPeriod() == 0 ? 24000L : viewCenter.getRotationPeriod()));
 			
 			if(shouldAppear(viewCenter, dailySeed))
 			{
 				double position = viewCenter.ticks() % DURATION;
 				
-				long meteorRandomizer = viewCenter.ticks() / DURATION;
+				long meteorSeed = ~(viewCenter.ticks() / DURATION);
 				
-				Random random = new Random(meteorRandomizer);
-				
-				float xRotation = (float) (random.nextInt(0, 45) + Math.PI * Mth.lerp(partialTicks, position - 1, position));
-				float yRotation = random.nextInt(0, 360);
-				float zRotation = random.nextInt(-70, 70);
+				float xRotation = (float) (seededInt(meteorSeed, SEED_X_ROTATION, 0, 45) + Math.PI * Mth.lerp(partialTicks, position - 1, position));
+				float yRotation = seededInt(meteorSeed, SEED_Y_ROTATION, 0, 360);
+				float zRotation = seededInt(meteorSeed, SEED_Z_ROTATION, -70, 70);
 				
 				MeteorType meteorType = getRandomMeteorType(dailySeed);
 				

@@ -145,7 +145,7 @@ public class OrbitingObject extends TexturedObject
 				return;
 			
 			this.ticks = parentPeriod.ticks;
-			this.orbits = this.frequency * this.ticks + 1;
+			this.orbits = this.frequency * this.ticks + parentPeriod.orbits; // Parent's orbits are added on top of the synodic ones
 			
 			this.frequency = this.orbits / this.ticks;
 			

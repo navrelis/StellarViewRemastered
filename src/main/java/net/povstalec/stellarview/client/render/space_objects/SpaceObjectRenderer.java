@@ -23,6 +23,7 @@ public abstract class SpaceObjectRenderer<RenderedObject extends SpaceObject>
 	
 	protected RenderedObject renderedObject;
 	protected double lastDistance = 0; // Last known distance of this object from the View Center, used for sorting
+	protected boolean renderedBehindParent = false; // Whether the parent has rendered this object before itself in the current frame
 	
 	protected ArrayList<SpaceObjectRenderer<?>> children;
 	
@@ -102,7 +103,7 @@ public abstract class SpaceObjectRenderer<RenderedObject extends SpaceObject>
 		
 		for(SpaceObjectRenderer<?> child : children)
 		{
-			child.setupSpaceObject(id, this);
+			child.setupSpaceObject(null, this); // The id belongs to this object, children get their own when they are set up themselves
 		}
 	}
 	

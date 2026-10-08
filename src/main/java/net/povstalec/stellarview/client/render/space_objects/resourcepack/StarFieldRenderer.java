@@ -116,6 +116,8 @@ public class StarFieldRenderer<T extends StarField> extends SpaceObjectRenderer<
 		this.totalLOD2stars = this.lod2stars;
 		this.totalLOD3stars = this.lod3stars;
 		
+		this.totalDustClouds = renderedObject.getDustClouds(); // Setup can run more than once, the arms below must not add up
+		
 		int i = 0;
 		for(StarField.SpiralArm arm : renderedObject.getSpiralArms())
 		{

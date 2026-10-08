@@ -34,7 +34,7 @@ public class Constellation extends SpaceObject
 			Codec.either(SpaceCoords.CODEC, StellarCoordinates.Equatorial.CODEC).fieldOf(COORDS).forGetter(constellation -> Either.left(constellation.getCoords())),
 			AxisRotation.CODEC.fieldOf(AXIS_ROTATION).forGetter(Constellation::getAxisRotation),
 			
-			ResourceLocation.CODEC.optionalFieldOf(STAR_TEXTURE).forGetter(constellation -> Optional.of(constellation.starTexture)),
+			ResourceLocation.CODEC.optionalFieldOf(STAR_TEXTURE).forGetter(constellation -> Optional.ofNullable(constellation.starTexture)),
 			StarDefinition.CODEC.listOf().fieldOf(STARS).forGetter(constellation -> new ArrayList<>())
 	).apply(instance, Constellation::new));
 	

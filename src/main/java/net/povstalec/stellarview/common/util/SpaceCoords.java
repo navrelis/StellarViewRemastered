@@ -303,7 +303,7 @@ public class SpaceCoords implements ISerializable
 				double subKm = this.km - lyToKm(additionalLightYears);
 				
 				this.ly += additionalLightYears;
-				this.km -= subKm;
+				this.km = subKm; // Only the part smaller than a light year stays in kilometers
 			}
 		}
 		
@@ -338,7 +338,7 @@ public class SpaceCoords implements ISerializable
 		
 		public double toLy()
 		{
-			return ly + kmToLy(km);
+			return ly + km / KM_PER_LY;
 		}
 		
 		public SpaceDistance add(SpaceDistance other)
@@ -376,7 +376,13 @@ public class SpaceCoords implements ISerializable
 			double result = this.ly * value;
 			long ly = (long) result;
 			
-			return new SpaceDistance((long) ly, roundDown ? 0 : result - ly);
+			// The fraction of a light year is carried over to kilometers
+			SpaceDistance distance = new SpaceDistance(ly, (result - ly) * KM_PER_LY + this.km * value);
+			
+			if(roundDown)
+				distance.km = 0;
+			
+			return distance;
 		}
 		
 		public SpaceDistance copy()

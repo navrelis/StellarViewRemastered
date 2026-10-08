@@ -55,7 +55,14 @@ public class StellarViewConfigSpec
 		if(value == null)
 			return null;
 		
-		return Boolean.parseBoolean(value);
+		if(value.equalsIgnoreCase("true"))
+			return true;
+		
+		if(value.equalsIgnoreCase("false"))
+			return false;
+		
+		StellarView.LOGGER.warn("Value " + value + " of " + name + " in file " + this.fileName + " is neither true nor false, using the default instead.");
+		return null;
 	}
 	
 	@Nullable

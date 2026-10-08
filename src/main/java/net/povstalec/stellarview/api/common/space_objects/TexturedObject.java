@@ -54,7 +54,7 @@ public abstract class TexturedObject extends SpaceObject
 		if(distance < fadeOutStart)
 			return 1;
 		
-		return (distance - fadeOutStart) / (fadeOutEnd - fadeOutStart);
+		return (fadeOutEnd - distance) / (fadeOutEnd - fadeOutStart); // 1 at the start distance, 0 at the end distance
 	}
 	
 	//============================================================================================

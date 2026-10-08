@@ -92,8 +92,8 @@ public class Nebula extends TexturedObject
 		
 		alpha -= (float) (lyDistance / 100000);
 		
-		if(alpha < getMinNebulaAlpha())
-			nebulaColor.setAlpha(getMinNebulaAlpha());
+		// Set on every call, otherwise the alpha would stay at the minimum after the nebula was viewed from far away once
+		nebulaColor.setAlpha(alpha < getMinNebulaAlpha() ? getMinNebulaAlpha() : getMaxNebulaAlpha());
 		
 		return nebulaColor;
 	}

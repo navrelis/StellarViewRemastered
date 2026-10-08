@@ -286,7 +286,7 @@ public class StellarCoordinates
 			double galacticLatitude = Math.asin(sinB);
 			
 			double x1 = Math.cos(declination) * Math.sin(rightAscension - RIGHT_ASCENSION_NGP);
-			double x2 = (Math.sin(declination) - Math.sin(DECLINATION_NGP) * galacticLatitude) / Math.cos(DECLINATION_NGP);
+			double x2 = (Math.sin(declination) - Math.sin(DECLINATION_NGP) * sinB) / Math.cos(DECLINATION_NGP);
 			
 			double galacticLongtitude = L_NCP - Math.atan2(x1, x2);
 			

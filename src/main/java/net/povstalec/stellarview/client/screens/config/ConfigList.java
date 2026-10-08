@@ -102,6 +102,12 @@ public class ConfigList extends ObjectSelectionList<ConfigList.ConfigEntry>
 		@SuppressWarnings("unchecked")
 		protected void reset()
 		{
+			if(this.value.get() == this.value.getDefault()) // Already at the default, nothing to save or update
+			{
+				this.resetToDefault.playDownSound(Minecraft.getInstance().getSoundManager());
+				return;
+			}
+			
 			this.value.set(this.value.getDefault());
 			((CycleButton<Boolean>) this.cycleButton).setValue(this.value.get());
 			super.reset();
@@ -111,8 +117,10 @@ public class ConfigList extends ObjectSelectionList<ConfigList.ConfigEntry>
 	    public boolean mouseClicked(double mouseX, double mouseY, int key)
 	    {
 	    	if(this.cycleButton.isMouseOver(mouseX, mouseY))
+	    	{
 	    		((AbstractButton) this.cycleButton).onPress();
-	    	update();
+	    		update(); // Only a press changes the value
+	    	}
 	    	
 			return super.mouseClicked(mouseX, mouseY, key);
 	    }
@@ -150,6 +158,12 @@ public class ConfigList extends ObjectSelectionList<ConfigList.ConfigEntry>
 		
 		protected void reset()
 		{
+			if(this.value.get() == this.value.getDefault()) // Already at the default, nothing to save or update
+			{
+				this.resetToDefault.playDownSound(Minecraft.getInstance().getSoundManager());
+				return;
+			}
+			
 			this.value.set(this.value.getDefault());
 			this.sliderButton.setValue((double) this.value.get() * multiplier);
 			super.reset();
@@ -157,7 +171,12 @@ public class ConfigList extends ObjectSelectionList<ConfigList.ConfigEntry>
 		
 		protected void onChanged()
 		{
-	    	value.set((int) this.sliderButton.getValue() / multiplier);
+			int newValue = (int) this.sliderButton.getValue() / multiplier;
+			
+			if(newValue == value.get()) // Nothing to save or update
+				return;
+	    	
+	    	value.set(newValue);
 	    	update();
 		}
 	    

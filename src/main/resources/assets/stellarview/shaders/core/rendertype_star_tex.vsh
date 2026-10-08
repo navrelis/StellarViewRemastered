@@ -48,7 +48,7 @@ float clampAlpha(float alpha, float distance)
 
 void main()
 {
-	vec3 xyz = vec3(StarPos.x - RelativeSpaceLy.x - RelativeSpaceKm.z / KM_PER_LY, StarPos.y - RelativeSpaceLy.y - RelativeSpaceKm.z / KM_PER_LY, StarPos.z - RelativeSpaceLy.z - RelativeSpaceKm.z / KM_PER_LY);
+	vec3 xyz = vec3(StarPos.x - RelativeSpaceLy.x - RelativeSpaceKm.x / KM_PER_LY, StarPos.y - RelativeSpaceLy.y - RelativeSpaceKm.y / KM_PER_LY, StarPos.z - RelativeSpaceLy.z - RelativeSpaceKm.z / KM_PER_LY);
 	
 	float distance = sqrt(xyz.x * xyz.x + xyz.y * xyz.y + xyz.z * xyz.z);
 	

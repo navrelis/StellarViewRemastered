@@ -75,8 +75,8 @@ public abstract class StarLike extends OrbitingObject
 		
 		alpha -= lyDistance / 100000;
 		
-		if(alpha < getMinStarAlpha())
-			starColor.setAlpha(getMinStarAlpha());
+		// Set on every call, otherwise the alpha would stay at the minimum after the star was viewed from far away once
+		starColor.setAlpha(alpha < getMinStarAlpha() ? getMinStarAlpha() : getMaxStarAlpha());
 		
 		return starColor;
 	}

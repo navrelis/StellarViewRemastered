@@ -51,8 +51,9 @@ public abstract class TexturedObjectRenderer<T extends TexturedObject> extends S
 		{
 			for(SpaceObjectRenderer<?> child : children)
 			{
-				// Render child behind the parent
-				if(child.lastDistance >= this.lastDistance)
+				// Render child behind the parent, decided only once per frame because rendering updates the distance of the child
+				child.renderedBehindParent = child.lastDistance >= this.lastDistance;
+				if(child.renderedBehindParent)
 					child.render(viewCenter, level, partialTicks, modelViewMatrix, camera, projectionMatrix, isFoggy, setupFog, tesselator, positionVector, axisRotation());
 			}
 		}
@@ -66,7 +67,7 @@ public abstract class TexturedObjectRenderer<T extends TexturedObject> extends S
 			for(SpaceObjectRenderer<?> child : children)
 			{
 				// Render child in front of the parent
-				if(child.lastDistance < this.lastDistance)
+				if(!child.renderedBehindParent)
 					child.render(viewCenter, level, partialTicks, modelViewMatrix, camera, projectionMatrix, isFoggy, setupFog, tesselator, positionVector, axisRotation());
 			}
 		}
