@@ -146,27 +146,28 @@ public class CelestialInstancedBuffer implements AutoCloseable
 	
 	public void drawWithShader(Matrix4f modelViewMatrix, Matrix4f projectionMatrix, SpaceCoords relativeSpacePos, CelestialShaderInstance shaderInstance, int instances)
 	{
-		Vector3f relativeVectorLy = new Vector3f((float) relativeSpacePos.x().ly(), (float) relativeSpacePos.y().ly(), (float) relativeSpacePos.z().ly());
-		Vector3f relativeVectorKm = new Vector3f((float) relativeSpacePos.x().km(), (float) relativeSpacePos.y().km(), (float) relativeSpacePos.z().km());
-		
 		if(!RenderSystem.isOnRenderThread())
 		{
+			Vector3f relativeVectorLy = new Vector3f((float) relativeSpacePos.x().ly(), (float) relativeSpacePos.y().ly(), (float) relativeSpacePos.z().ly());
+			Vector3f relativeVectorKm = new Vector3f((float) relativeSpacePos.x().km(), (float) relativeSpacePos.y().km(), (float) relativeSpacePos.z().km());
+			
 			RenderSystem.recordRenderCall(() ->
 			{
 				this._drawWithShader(new Matrix4f(modelViewMatrix), new Matrix4f(projectionMatrix), relativeVectorLy, relativeVectorKm, shaderInstance, instances);
 			});
 		}
 		else
-			this._drawWithShader(modelViewMatrix, projectionMatrix, relativeVectorLy, relativeVectorKm, shaderInstance, instances);
+		{
+			CelestialBuffer.RELATIVE_VECTOR_LY.set((float) relativeSpacePos.x().ly(), (float) relativeSpacePos.y().ly(), (float) relativeSpacePos.z().ly());
+			CelestialBuffer.RELATIVE_VECTOR_KM.set((float) relativeSpacePos.x().km(), (float) relativeSpacePos.y().km(), (float) relativeSpacePos.z().km());
+			
+			this._drawWithShader(modelViewMatrix, projectionMatrix, CelestialBuffer.RELATIVE_VECTOR_LY, CelestialBuffer.RELATIVE_VECTOR_KM, shaderInstance, instances);
+		}
 	}
 	
 	private void _drawWithShader(Matrix4f modelViewMatrix, Matrix4f projectionMatrix, Vector3f relativeSpaceLy, Vector3f relativeSpaceKm, CelestialShaderInstance shaderInstance, int instances)
 	{
-		for(int i = 0; i < CelestialBuffer.SAMPLER_NAMES.length; ++i)
-		{
-			int j = RenderSystem.getShaderTexture(i);
-			shaderInstance.setSampler(CelestialBuffer.SAMPLER_NAMES[i], j);
-		}
+		CelestialBuffer.setSamplers(shaderInstance);
 		
 		if(shaderInstance.MODEL_VIEW_MATRIX != null)
 			shaderInstance.MODEL_VIEW_MATRIX.set(modelViewMatrix);

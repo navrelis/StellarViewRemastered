@@ -32,6 +32,10 @@ public class SpaceCoords implements ISerializable
     		SpaceDistance.CODEC.fieldOf(Z).forGetter(SpaceCoords::z)
 			).apply(instance, SpaceCoords::new));
 	
+	// Reused by the sky positions with an offset, they hold no value outside of calculating one
+	private static final Vector3d SKY_POSITION = new Vector3d();
+	private static final Quaterniond SKY_ROTATION = new Quaterniond();
+	
 	private SpaceDistance x;
 	private SpaceDistance y;
 	private SpaceDistance z;
@@ -111,22 +115,85 @@ public class SpaceCoords implements ISerializable
 	
 	public static Quaterniond getQuaterniond(ClientLevel level, ViewCenter viewCenter, float partialTicks)
 	{
-		Quaterniond q = new Quaterniond();
+		return getQuaterniond(level, viewCenter, partialTicks, new Quaterniond());
+	}
+	
+	/**
+	 * @param dest Destination Quaternion into which the rotation should be written
+	 */
+	public static Quaterniond getQuaterniond(ClientLevel level, ViewCenter viewCenter, float partialTicks, Quaterniond dest)
+	{
+		dest.identity();
 		// Inverting so that we can view the world through the relative rotation of our view center
 		if(!GeneralConfig.disable_view_center_rotation.get())
-			viewCenter.getObjectAxisRotation().quaterniond().invert(q);
+			viewCenter.getObjectAxisRotation().quaterniond().invert(dest);
 		
-		return q;
+		return dest;
 	}
 	
 	public static Quaternionf getQuaternionf(ClientLevel level, ViewCenter viewCenter, float partialTicks)
 	{
-		Quaternionf q = new Quaternionf();
+		return getQuaternionf(level, viewCenter, partialTicks, new Quaternionf());
+	}
+	
+	/**
+	 * @param dest Destination Quaternion into which the rotation should be written
+	 */
+	public static Quaternionf getQuaternionf(ClientLevel level, ViewCenter viewCenter, float partialTicks, Quaternionf dest)
+	{
+		dest.identity();
 		// Inverting so that we can view the world through the relative rotation of our view center
 		if(!GeneralConfig.disable_view_center_rotation.get())
-			viewCenter.getObjectAxisRotation().quaternionf().invert(q);
+			viewCenter.getObjectAxisRotation().quaternionf().invert(dest);
 		
-		return q;
+		return dest;
+	}
+	
+	// Same value as coordinate.add(offset).sub(origin).toKm(), without creating the two distances in between
+	private static double relativeKm(SpaceDistance coordinate, double offset, SpaceDistance origin)
+	{
+		// coordinate.add(offset)
+		long ly = coordinate.ly;
+		double km = coordinate.km + offset;
+		
+		if(km >= KM_PER_LY || km <= -KM_PER_LY)
+		{
+			long additionalLightYears = SpaceDistance.kmToLy(km);
+			double subKm = km - SpaceDistance.lyToKm(additionalLightYears);
+			
+			ly += additionalLightYears;
+			km = subKm;
+		}
+		
+		// .sub(origin)
+		ly = ly - origin.ly;
+		km = km - origin.km;
+		
+		if(km >= KM_PER_LY || km <= -KM_PER_LY)
+		{
+			long additionalLightYears = SpaceDistance.kmToLy(km);
+			double subKm = km - SpaceDistance.lyToKm(additionalLightYears);
+			
+			ly += additionalLightYears;
+			km = subKm;
+		}
+		
+		// .toKm()
+		return km + SpaceDistance.lyToKm(ly);
+	}
+	
+	// Writes the position of these coordinates moved by the offset, relative to the View Center, into SKY_POSITION, which only ever holds a value within this method and the method calling it
+	private void relativePosition(Vector3f offset, ClientLevel level, ViewCenter viewCenter, float partialTicks, boolean adjustForRotation)
+	{
+		SpaceCoords viewCenterCoords = viewCenter.getCoords();
+		
+		if(adjustForRotation)
+			getQuaterniond(level, viewCenter, partialTicks, SKY_ROTATION);
+		
+		SKY_POSITION.set(relativeKm(this.x, offset.x, viewCenterCoords.x), relativeKm(this.y, offset.y, viewCenterCoords.y), relativeKm(this.z, offset.z, viewCenterCoords.z));
+		
+		if(adjustForRotation)
+			SKY_ROTATION.transform(SKY_POSITION);
 	}
 	
 	/**
@@ -157,6 +224,29 @@ public class SpaceCoords implements ISerializable
 	}
 	
 	/**
+	 * Sky position of these coordinates moved by an offset, which gives the same values as adding the offset to the coordinates first.
+	 * The position is calculated in reused objects, so this may only be called on the render thread
+	 * @param dest Destination Spherical Coords into which the calculated values should be written
+	 * @param offset Offset in kilometers which is added to these coordinates
+	 * @param level Current Level
+	 * @param viewCenter The View center this object is viewed from
+	 * @param radius The radius of the sphere onto which the sky position is projected
+	 * @param partialTicks Partial Ticks
+	 * @param adjustForRotation Whether the returned value should adjust for sky rotation (for example, when it's disabled in the config)
+	 * @return Returns the distance from the View Center the object was at originally
+	 */
+	public double skyPosition(SphericalCoords dest, Vector3f offset, ClientLevel level, ViewCenter viewCenter, float radius, float partialTicks, boolean adjustForRotation)
+	{
+		relativePosition(offset, level, viewCenter, partialTicks, adjustForRotation);
+		
+		dest.fromCartesian(SKY_POSITION);
+		double distance = dest.r;
+		dest.r = radius;
+		
+		return distance;
+	}
+	
+	/**
 	 * @param dest Destination Spherical Coords into which the calculated values should be written
 	 * @param level Current Level
 	 * @param viewCenter The View center this object is viewed from
@@ -177,6 +267,23 @@ public class SpaceCoords implements ISerializable
 		dest.fromCartesian(positionVector);
 	}
 	
+	/**
+	 * Sky position of these coordinates moved by an offset, which gives the same values as adding the offset to the coordinates first.
+	 * The position is calculated in reused objects, so this may only be called on the render thread
+	 * @param dest Destination Spherical Coords into which the calculated values should be written
+	 * @param offset Offset in kilometers which is added to these coordinates
+	 * @param level Current Level
+	 * @param viewCenter The View center this object is viewed from
+	 * @param partialTicks Partial Ticks
+	 * @param adjustForRotation Whether the returned value should adjust for sky rotation (for example, when it's disabled in the config)
+	 */
+	public void skyPosition(SphericalCoords dest, Vector3f offset, ClientLevel level, ViewCenter viewCenter, float partialTicks, boolean adjustForRotation)
+	{
+		relativePosition(offset, level, viewCenter, partialTicks, adjustForRotation);
+		
+		dest.fromCartesian(SKY_POSITION);
+	}
+	
 	public SpaceCoords add(SpaceCoords other)
 	{
 		return new SpaceCoords(this.x.add(other.x), this.y.add(other.y), this.z.add(other.z));
@@ -195,6 +302,20 @@ public class SpaceCoords implements ISerializable
 	public SpaceCoords sub(SpaceCoords other)
 	{
 		return new SpaceCoords(this.x.sub(other.x), this.y.sub(other.y), this.z.sub(other.z));
+	}
+	
+	/**
+	 * @param other The coordinates subtracted from these coordinates
+	 * @param dest Destination Space Coords the result is written into, its distances get overwritten, so they must not be a part of any other coordinates
+	 * @return Returns dest
+	 */
+	public SpaceCoords sub(SpaceCoords other, SpaceCoords dest)
+	{
+		dest.x.set(this.x.ly - other.x.ly, this.x.km - other.x.km);
+		dest.y.set(this.y.ly - other.y.ly, this.y.km - other.y.km);
+		dest.z.set(this.z.ly - other.z.ly, this.z.km - other.z.km);
+		
+		return dest;
 	}
 	
 	public SpaceCoords sub(Vector3f vector)
@@ -293,6 +414,15 @@ public class SpaceCoords implements ISerializable
 		public SpaceDistance(double kilometers)
 		{
 			this(0, kilometers);
+		}
+		
+		// Same as creating a new distance from the values
+		private void set(long lightYears, double kilometers)
+		{
+			this.ly = lightYears;
+			this.km = kilometers;
+			
+			handleKmOverflow();
 		}
 		
 		protected void handleKmOverflow()

@@ -21,6 +21,8 @@ import net.povstalec.stellarview.common.util.UV;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
+
 public class LunaRenderer extends MoonRenderer<Luna>
 {
 	public static final ResourceLocation MOON_LOCATION = ResourceLocation.withDefaultNamespace("textures/environment/moon_phases.png");
@@ -78,9 +80,10 @@ public class LunaRenderer extends MoonRenderer<Luna>
 			renderTextureLayer(MOON_TEXTURE_LAYER, viewCenter, level, camera, tesselator, lastMatrix, sphericalCoords, fade, ticks, distance, partialTicks);
 		else
 		{
-			for(TextureLayer textureLayer : renderedObject.getTextureLayers())
+			ArrayList<TextureLayer> textureLayers = renderedObject.getTextureLayers();
+			for(int i = 0; i < textureLayers.size(); i++)
 			{
-				renderTextureLayer(textureLayer, viewCenter, level, camera, tesselator, lastMatrix, sphericalCoords, fade, ticks, distance, partialTicks);
+				renderTextureLayer(textureLayers.get(i), viewCenter, level, camera, tesselator, lastMatrix, sphericalCoords, fade, ticks, distance, partialTicks);
 			}
 		}
 	}

@@ -14,13 +14,29 @@ import net.povstalec.stellarview.api.common.space_objects.TexturedObject;
 import net.povstalec.stellarview.client.render.LightEffects;
 import net.povstalec.stellarview.client.resourcepack.ViewCenter;
 import net.povstalec.stellarview.common.util.*;
+import net.povstalec.stellarview.compatibility.iris.IrisCompatibility;
 import org.joml.Matrix4f;
 import org.joml.Quaterniond;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
+
+import java.util.ArrayList;
 
 public abstract class TexturedObjectRenderer<T extends TexturedObject> extends SpaceObjectRenderer<T>
 {
 	public static final float DEFAULT_DISTANCE = 100.0F;
+	
+	// Clip coordinates may be this far outside of the view (relative to w) before a layer counts as being off screen
+	private static final float OFF_SCREEN_MARGIN = 0.05F;
+	
+	// Reused by every layer, they hold no value outside of renderOnSphere
+	private static final Quaterniond SPHERE_ROTATION = new Quaterniond();
+	private static final Quaterniond SPHERE_AXIS_ROTATION = new Quaterniond();
+	private static final Vector3f CORNER_00 = new Vector3f();
+	private static final Vector3f CORNER_10 = new Vector3f();
+	private static final Vector3f CORNER_11 = new Vector3f();
+	private static final Vector3f CORNER_01 = new Vector3f();
+	private static final Vector4f CLIP_POSITION = new Vector4f();
 	
 	protected SphericalCoords sphericalCoords = new SphericalCoords();
 	
@@ -40,17 +56,16 @@ public abstract class TexturedObjectRenderer<T extends TexturedObject> extends S
 	{
 		Vector3f positionVector = getPosition(viewCenter, parentRotation, viewCenter.ticks(), partialTicks).add(parentVector); // Handles orbits 'n stuff
 		
-		// Add parent vector to current coords
-		SpaceCoords coords = renderedObject.getCoords().add(positionVector);
-		
-		// Subtract coords of this from View Center coords to get relative coords
-		lastDistance = coords.skyPosition(sphericalCoords, level, viewCenter, DEFAULT_DISTANCE, partialTicks, true);
+		// Add parent vector to current coords and subtract View Center coords from them to get relative coords
+		lastDistance = renderedObject.getCoords().skyPosition(sphericalCoords, positionVector, level, viewCenter, DEFAULT_DISTANCE, partialTicks, true);
 		
 		double childRenderDistance = renderedObject.getFadeOutHandler().getMaxChildRenderDistance().toKm();
 		if(childRenderDistance > lastDistance)
 		{
-			for(SpaceObjectRenderer<?> child : children)
+			for(int i = 0; i < children.size(); i++)
 			{
+				SpaceObjectRenderer<?> child = children.get(i);
+				
 				// Render child behind the parent, decided only once per frame because rendering updates the distance of the child
 				child.renderedBehindParent = child.lastDistance >= this.lastDistance;
 				if(child.renderedBehindParent)
@@ -64,8 +79,10 @@ public abstract class TexturedObjectRenderer<T extends TexturedObject> extends S
 		
 		if(childRenderDistance > lastDistance)
 		{
-			for(SpaceObjectRenderer<?> child : children)
+			for(int i = 0; i < children.size(); i++)
 			{
+				SpaceObjectRenderer<?> child = children.get(i);
+				
 				// Render child in front of the parent
 				if(!child.renderedBehindParent)
 					child.render(viewCenter, level, partialTicks, modelViewMatrix, camera, projectionMatrix, isFoggy, setupFog, tesselator, positionVector, axisRotation());
@@ -74,38 +91,104 @@ public abstract class TexturedObjectRenderer<T extends TexturedObject> extends S
 	}
 	
 	
+	// Rotates a corner of the layer to its place on the sphere and applies the matrix, the same way adding it as a vertex with that matrix would
+	private static void setupCorner(Vector3f corner, Matrix4f lastMatrix, float x, float z)
+	{
+		SPHERE_ROTATION.transform(x, DEFAULT_DISTANCE, z, corner);
+		lastMatrix.transformPosition(corner.x, corner.y, corner.z, corner);
+	}
+	
+	private static void setupCorners(Matrix4f lastMatrix, SphericalCoords sphericalCoords, float size, float rotation)
+	{
+		SPHERE_ROTATION.identity().rotateY(sphericalCoords.theta);
+		SPHERE_ROTATION.mul(SPHERE_AXIS_ROTATION.identity().rotateX(sphericalCoords.phi));
+		SPHERE_ROTATION.mul(SPHERE_AXIS_ROTATION.identity().rotateY(rotation));
+		
+		setupCorner(CORNER_00, lastMatrix, size, size);
+		setupCorner(CORNER_10, lastMatrix, -size, size);
+		setupCorner(CORNER_11, lastMatrix, -size, -size);
+		setupCorner(CORNER_01, lastMatrix, size, -size);
+	}
+	
+	// Sets a bit for each side of the view the corner lies outside of, a corner with no bits set may be visible
+	private static int offScreenSides(Vector3f corner, Matrix4f modelViewMatrix, Matrix4f projectionMatrix)
+	{
+		Vector4f position = CLIP_POSITION.set(corner.x, corner.y, corner.z, 1F);
+		modelViewMatrix.transform(position);
+		projectionMatrix.transform(position);
+		
+		float margin = Math.abs(position.w) * OFF_SCREEN_MARGIN;
+		int sides = 0;
+		
+		if(position.x < -position.w - margin)
+			sides |= 1;
+		if(position.x > position.w + margin)
+			sides |= 2;
+		if(position.y < -position.w - margin)
+			sides |= 4;
+		if(position.y > position.w + margin)
+			sides |= 8;
+		if(position.z < -position.w - margin)
+			sides |= 16;
+		if(position.z > position.w + margin)
+			sides |= 32;
+		
+		return sides;
+	}
+	
+	// A layer is certain to be off screen once all of its corners lie outside of the same side of the view
+	private static boolean cornersOffScreen(Matrix4f modelViewMatrix, Matrix4f projectionMatrix)
+	{
+		return (offScreenSides(CORNER_00, modelViewMatrix, projectionMatrix) & offScreenSides(CORNER_10, modelViewMatrix, projectionMatrix)
+				& offScreenSides(CORNER_11, modelViewMatrix, projectionMatrix) & offScreenSides(CORNER_01, modelViewMatrix, projectionMatrix)) != 0;
+	}
+	
+	private static boolean isOffScreen()
+	{
+		// Where the vertices end up is only known for the Vanilla shader, a shader pack is free to place them somewhere else
+		if(RenderSystem.getShader() != GameRenderer.getPositionTexShader() || IrisCompatibility.isShaderPackInUse())
+			return false;
+		
+		return cornersOffScreen(RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix());
+	}
+	
 	public static void renderOnSphere(Color.FloatRGBA rgba, Color.FloatRGBA secondaryRGBA, ResourceLocation texture, UV.Quad uv,
 									  ClientLevel level, Camera camera, Tesselator tesselator, Matrix4f lastMatrix, SphericalCoords sphericalCoords,
 									  long ticks, double distance, float partialTicks, float brightness, float size, float rotation, boolean shouldBlend)
 	{
-		Vector3f corner00 = new Vector3f(size, DEFAULT_DISTANCE, size);
-		Vector3f corner10 = new Vector3f(-size, DEFAULT_DISTANCE, size);
-		Vector3f corner11 = new Vector3f(-size, DEFAULT_DISTANCE, -size);
-		Vector3f corner01 = new Vector3f(size, DEFAULT_DISTANCE, -size);
+		float alpha = brightness * rgba.alpha() * secondaryRGBA.alpha();
 		
-		Quaterniond quaternionX = new Quaterniond().rotateY(sphericalCoords.theta);
-		quaternionX.mul(new Quaterniond().rotateX(sphericalCoords.phi));
-		quaternionX.mul(new Quaterniond().rotateY(rotation));
+		RenderSystem.setShaderColor(rgba.red() * secondaryRGBA.red(), rgba.green() * secondaryRGBA.green(), rgba.blue() * secondaryRGBA.blue(), alpha);
 		
-		quaternionX.transform(corner00);
-		quaternionX.transform(corner10);
-		quaternionX.transform(corner11);
-		quaternionX.transform(corner01);
+		RenderSystem.setShaderTexture(0, texture);
+		
+		// A layer without any alpha leaves the colors on screen as they are in both blend modes, so only the state it would leave behind gets set
+		if(alpha <= 0)
+		{
+			RenderSystem.defaultBlendFunc();
+			return;
+		}
+		
+		setupCorners(lastMatrix, sphericalCoords, size, rotation);
+		
+		// The same goes for a layer none of which can end up on screen
+		if(isOffScreen())
+		{
+			RenderSystem.defaultBlendFunc();
+			return;
+		}
 		
 		if(shouldBlend)
 			RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 		else
 			RenderSystem.defaultBlendFunc();
 		
-		RenderSystem.setShaderColor(rgba.red() * secondaryRGBA.red(), rgba.green() * secondaryRGBA.green(), rgba.blue() * secondaryRGBA.blue(), brightness * rgba.alpha() * secondaryRGBA.alpha());
-		
-		RenderSystem.setShaderTexture(0, texture);
 		final var bufferbuilder = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 		
-		bufferbuilder.addVertex(lastMatrix, corner00.x, corner00.y, corner00.z).setUv(uv.topRight().u(ticks), uv.topRight().v(ticks));
-		bufferbuilder.addVertex(lastMatrix, corner10.x, corner10.y, corner10.z).setUv(uv.bottomRight().u(ticks), uv.bottomRight().v(ticks));
-		bufferbuilder.addVertex(lastMatrix, corner11.x, corner11.y, corner11.z).setUv(uv.bottomLeft().u(ticks), uv.bottomLeft().v(ticks));
-		bufferbuilder.addVertex(lastMatrix, corner01.x, corner01.y, corner01.z).setUv(uv.topLeft().u(ticks), uv.topLeft().v(ticks));
+		bufferbuilder.addVertex(CORNER_00.x, CORNER_00.y, CORNER_00.z).setUv(uv.topRight().u(ticks), uv.topRight().v(ticks));
+		bufferbuilder.addVertex(CORNER_10.x, CORNER_10.y, CORNER_10.z).setUv(uv.bottomRight().u(ticks), uv.bottomRight().v(ticks));
+		bufferbuilder.addVertex(CORNER_11.x, CORNER_11.y, CORNER_11.z).setUv(uv.bottomLeft().u(ticks), uv.bottomLeft().v(ticks));
+		bufferbuilder.addVertex(CORNER_01.x, CORNER_01.y, CORNER_01.z).setUv(uv.topLeft().u(ticks), uv.topLeft().v(ticks));
 		
 		BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
 		
@@ -158,9 +241,10 @@ public abstract class TexturedObjectRenderer<T extends TexturedObject> extends S
 		
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		
-		for(TextureLayer textureLayer : renderedObject.getTextureLayers())
+		ArrayList<TextureLayer> textureLayers = renderedObject.getTextureLayers();
+		for(int i = 0; i < textureLayers.size(); i++)
 		{
-			renderTextureLayer(textureLayer, viewCenter, level, camera, tesselator, lastMatrix, sphericalCoords, fade, ticks, distance, partialTicks);
+			renderTextureLayer(textureLayers.get(i), viewCenter, level, camera, tesselator, lastMatrix, sphericalCoords, fade, ticks, distance, partialTicks);
 		}
 	}
 }

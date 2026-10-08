@@ -14,12 +14,12 @@ Status values: open / in progress / in review / done.
 | T4a | R3 render fixes (audit A2, A3, A6, A7, A8, A12, A14, A21, profiler pop, DayBlending codec, B3) | each finding fixed or rejected with reason; build green | A1 | Opus | done (in-game checks in T9) |
 | T4b | R3 small fixes (audit A4, A11, A20, A23 parts, A24, A25, debug prints) | each finding fixed or rejected with reason; build green | A1 | Sonnet | done |
 | T4c | R3 maths/brightness fixes + per-frame cost (audit A1, A5, A9, A10, A13, A15, B1, B2, B4, B5; judge A16-A19, A22) | fixed or rejected with reason; same picture where promised; build green | T2, T4a | Opus | done (in-game checks in T9) |
-| T5 | R3 optimisation with numbers | before/after: allocation per frame and sky render time, same picture | T4, measuring method from A2 | Opus | in progress |
+| T5 | R3 optimisation with numbers | before/after: allocation per frame and sky render time, same picture | T4, measuring method from A2 | Opus | done |
 | T6 | Metadata: name, version 0.6.0, credits, links, jar name, licence file in jar, Mod Menu optional, README | jar name and `fabric.mod.json` correct, LICENSE inside the jar | - | Sonnet | done |
 | T7 | R5 pixel-art logo 64x64 -> 512, mod icon | both PNGs in the repo, generator script, nearest-neighbour proven (512 = 64 x 8 blocks) | - | Opus | done |
 | T8 | R4 `CURSEFORGE.md` | summary <= 150 characters, description, credits, MIT | T2-T5 known | Sonnet | in review |
 | T9 | R6 install in the pack, in-game check of R1 and R2 for every shader pack | screenshots day/night, shaders on/off without restart, pack launches | T2-T6, game lock | lead | in progress |
-| T10 | Is the pack's shader-side double-sun workaround still needed? | answer with evidence in the report | T9 | lead | open |
+| T10 | Is the pack's shader-side double-sun workaround still needed? | answer with evidence in the report | T9 | lead | done (answer: not needed any more; left in place) |
 | T11 | Final acceptance, `report.md`, push, line in `F:\Coding\.knowledge\log.md` | full build, no leftovers | all | lead | open |
 
 Parallel: A1 + A2 now. T2 + T3 + T6 + T7 touch different files (T3 owns config/lang/screens, T2 only `LunaRenderer`/`Luna`, T6 metadata/build files, T7 logo files).

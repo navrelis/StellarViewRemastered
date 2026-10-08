@@ -27,6 +27,13 @@ public class CelestialBuffer implements AutoCloseable
 					"Sampler6", "Sampler7", "Sampler8", "Sampler9", "Sampler10", "Sampler11"
 			};
 	
+	// The boxed texture each sampler was given last
+	private static final Integer[] SAMPLER_TEXTURES = new Integer[SAMPLER_NAMES.length];
+	
+	// Reused by every draw on the render thread, they hold no value past the uniforms they are copied to
+	static final Vector3f RELATIVE_VECTOR_LY = new Vector3f();
+	static final Vector3f RELATIVE_VECTOR_KM = new Vector3f();
+	
 	private int vertexBufferId;
 	private int indexBufferId;
 	private int arrayObjectId;
@@ -161,18 +168,43 @@ public class CelestialBuffer implements AutoCloseable
 	
 	public void drawWithShader(Matrix4f modelViewMatrix, Matrix4f projectionMatrix, SpaceCoords relativeSpacePos, CelestialShaderInstance shaderInstance)
 	{
-		Vector3f relativeVectorLy = new Vector3f((float) relativeSpacePos.x().ly(), (float) relativeSpacePos.y().ly(), (float) relativeSpacePos.z().ly());
-		Vector3f relativeVectorKm = new Vector3f((float) relativeSpacePos.x().km(), (float) relativeSpacePos.y().km(), (float) relativeSpacePos.z().km());
-		
 		if(!RenderSystem.isOnRenderThread())
 		{
+			Vector3f relativeVectorLy = new Vector3f((float) relativeSpacePos.x().ly(), (float) relativeSpacePos.y().ly(), (float) relativeSpacePos.z().ly());
+			Vector3f relativeVectorKm = new Vector3f((float) relativeSpacePos.x().km(), (float) relativeSpacePos.y().km(), (float) relativeSpacePos.z().km());
+			
 			RenderSystem.recordRenderCall(() ->
 			{
 				this._drawWithShader(new Matrix4f(modelViewMatrix), new Matrix4f(projectionMatrix), relativeVectorLy, relativeVectorKm, shaderInstance);
 			});
 		}
 		else
-			this._drawWithShader(modelViewMatrix, projectionMatrix, relativeVectorLy, relativeVectorKm, shaderInstance);
+		{
+			RELATIVE_VECTOR_LY.set((float) relativeSpacePos.x().ly(), (float) relativeSpacePos.y().ly(), (float) relativeSpacePos.z().ly());
+			RELATIVE_VECTOR_KM.set((float) relativeSpacePos.x().km(), (float) relativeSpacePos.y().km(), (float) relativeSpacePos.z().km());
+			
+			this._drawWithShader(modelViewMatrix, projectionMatrix, RELATIVE_VECTOR_LY, RELATIVE_VECTOR_KM, shaderInstance);
+		}
+	}
+	
+	/**
+	 * Hands the current shader textures over to the samplers of a shader, a texture only gets boxed again once a sampler is given a different one
+	 */
+	static void setSamplers(ShaderInstance shaderInstance)
+	{
+		for(int i = 0; i < SAMPLER_NAMES.length; ++i)
+		{
+			int j = RenderSystem.getShaderTexture(i);
+			Integer texture = SAMPLER_TEXTURES[i];
+			
+			if(texture == null || texture != j)
+			{
+				texture = j;
+				SAMPLER_TEXTURES[i] = texture;
+			}
+			
+			shaderInstance.setSampler(SAMPLER_NAMES[i], texture);
+		}
 	}
 	
 	private void _drawWithShader(Matrix4f modelViewMatrix, Matrix4f projectionMatrix, ShaderInstance shaderInstance)
@@ -180,11 +212,7 @@ public class CelestialBuffer implements AutoCloseable
 		if(this.indexCount == 0) // Nothing was uploaded
 			return;
 		
-		for(int i = 0; i < SAMPLER_NAMES.length; ++i)
-		{
-			int j = RenderSystem.getShaderTexture(i);
-			shaderInstance.setSampler(SAMPLER_NAMES[i], j);
-		}
+		setSamplers(shaderInstance);
 		
 		if(shaderInstance.MODEL_VIEW_MATRIX != null)
 			shaderInstance.MODEL_VIEW_MATRIX.set(modelViewMatrix);

@@ -53,6 +53,13 @@ public class StarFieldRenderer<T extends StarField> extends SpaceObjectRenderer<
 	protected ArrayList<Constellation.StarDefinition> lod2definedStars;
 	protected ArrayList<Constellation.StarDefinition> lod3definedStars;
 	
+	// Reused every frame, each Star Field has its own because they are handed to the star and dust cloud data
+	private final SpaceCoords difference = new SpaceCoords();
+	private final Matrix4f transformedModelView = new Matrix4f();
+	
+	// Reused by every Star Field, it holds no value past the line after the one it is written in
+	private static final Quaternionf VIEW_ROTATION = new Quaternionf();
+	
 	public StarFieldRenderer(T starField)
 	{
 		super(starField);
@@ -474,7 +481,7 @@ public class StarFieldRenderer<T extends StarField> extends SpaceObjectRenderer<
 					   Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog, Tesselator tesselator,
 					   Vector3f parentVector, AxisRotation parentRotation)
 	{
-		SpaceCoords difference = viewCenter.getCoords().sub(spaceCoords());
+		SpaceCoords difference = viewCenter.getCoords().sub(spaceCoords(), this.difference);
 		
 		if(starData == null)
 			setStars();
@@ -486,7 +493,7 @@ public class StarFieldRenderer<T extends StarField> extends SpaceObjectRenderer<
 		
 		if(!GeneralConfig.disable_stars.get() && viewCenter.starBrightness() > 0.0F)
 		{
-			final var transformedModelView = new Matrix4f(modelViewMatrix);
+			final var transformedModelView = this.transformedModelView.set(modelViewMatrix);
 			
 			//stack.translate(0, 0, 0);
 			if(hasTexture)
@@ -498,7 +505,7 @@ public class StarFieldRenderer<T extends StarField> extends SpaceObjectRenderer<
 			if(isStatic) // Star shaders have no fog, only the vanilla shaders used for the static sky can have it once a shader pack replaces them
 				FogRenderer.setupNoFog();
 			
-			Quaternionf q = SpaceCoords.getQuaternionf(level, viewCenter, partialTicks);
+			Quaternionf q = SpaceCoords.getQuaternionf(level, viewCenter, partialTicks, VIEW_ROTATION);
 			
 			transformedModelView.rotate(q);
 			this.starData.renderStars(StarField.LevelOfDetail.fromDistance(difference), transformedModelView, projectionMatrix, difference, isStatic, hasTexture);
@@ -518,7 +525,7 @@ public class StarFieldRenderer<T extends StarField> extends SpaceObjectRenderer<
 	public void renderDustClouds(ViewCenter viewCenter, ClientLevel level, float partialTicks, Matrix4f modelViewMatrix, Camera camera,
 								 Matrix4f projectionMatrix, Runnable setupFog, float brightness)
 	{
-		SpaceCoords difference = viewCenter.getCoords().sub(spaceCoords());
+		SpaceCoords difference = viewCenter.getCoords().sub(spaceCoords(), this.difference);
 		
 		if(StarField.LevelOfDetail.fromDistance(difference) == StarField.LevelOfDetail.LOD1)
 			return;
@@ -530,7 +537,7 @@ public class StarFieldRenderer<T extends StarField> extends SpaceObjectRenderer<
 		
 		if(brightness > 0.0F && totalDustClouds > 0)
 		{
-			final var transformedModelView = new Matrix4f(modelViewMatrix);
+			final var transformedModelView = this.transformedModelView.set(modelViewMatrix);
 			
 			RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 			RenderSystem.setShaderColor(1, 1, 1, brightness);
@@ -539,7 +546,7 @@ public class StarFieldRenderer<T extends StarField> extends SpaceObjectRenderer<
 			if(isStatic) // Same as with stars, dust cloud shaders have no fog
 				FogRenderer.setupNoFog();
 			
-			Quaternionf q = SpaceCoords.getQuaternionf(level, viewCenter, partialTicks);
+			Quaternionf q = SpaceCoords.getQuaternionf(level, viewCenter, partialTicks, VIEW_ROTATION);
 			
 			transformedModelView.rotate(q);
 			this.dustCloudData.renderDustClouds(transformedModelView, projectionMatrix, difference, isStatic);

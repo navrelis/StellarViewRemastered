@@ -58,6 +58,12 @@ public class Skybox
 					}
 			};
 	
+	// Reused by every facade vertex, it holds no value past the line after the one it is written in
+	private static final Vector3f VERTEX = new Vector3f();
+	
+	// Reused every frame, each Skybox has its own because it is handed to renderFacade
+	private final Matrix4f facadeModelView = new Matrix4f();
+	
 	private SkyboxFacade[] facades = new SkyboxFacade[6];
 	
 	public static final Codec<Skybox> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -111,7 +117,7 @@ public class Skybox
 	
 	public void render(ClientLevel level, float partialTicks, Matrix4f modelViewMatrix, Tesselator tesselator)
 	{
-		final var transformeModelView = new Matrix4f(modelViewMatrix);
+		final var transformeModelView = facadeModelView.set(modelViewMatrix);
 		//stack.mulPose(Axis.YP.rotationDegrees(skyXAngle));
 		//stack.mulPose(Axis.ZP.rotationDegrees(skyYAngle));
 		//stack.mulPose(Axis.XP.rotationDegrees(skyZAngle));
@@ -137,12 +143,24 @@ public class Skybox
 		Color.IntRGBA rgba = facade.rgba();
 		
 		RenderSystem.setShaderTexture(0, facade.texture());
+		
+		if(rgba.alpha() <= 0) // The shader discards everything a facade without any alpha would draw
+			return;
+		
 		final var bufferbuilder = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-		bufferbuilder.addVertex(lastMatrix, BOX_COORDS[i][0].x, BOX_COORDS[i][0].y, BOX_COORDS[i][0].z).setUv(uv.topLeft().u(), uv.topLeft().v()).setColor(rgba.red(), rgba.green(), rgba.blue(), rgba.alpha());
-		bufferbuilder.addVertex(lastMatrix, BOX_COORDS[i][1].x, BOX_COORDS[i][1].y, BOX_COORDS[i][1].z).setUv(uv.bottomLeft().u(), uv.bottomLeft().v()).setColor(rgba.red(), rgba.green(), rgba.blue(), rgba.alpha());
-		bufferbuilder.addVertex(lastMatrix, BOX_COORDS[i][2].x, BOX_COORDS[i][2].y, BOX_COORDS[i][2].z).setUv(uv.bottomRight().u(), uv.bottomRight().v()).setColor(rgba.red(), rgba.green(), rgba.blue(), rgba.alpha());
-		bufferbuilder.addVertex(lastMatrix, BOX_COORDS[i][3].x, BOX_COORDS[i][3].y, BOX_COORDS[i][3].z).setUv(uv.topRight().u(), uv.topRight().v()).setColor(rgba.red(), rgba.green(), rgba.blue(), rgba.alpha());
+		addVertex(bufferbuilder, lastMatrix, BOX_COORDS[i][0]).setUv(uv.topLeft().u(), uv.topLeft().v()).setColor(rgba.red(), rgba.green(), rgba.blue(), rgba.alpha());
+		addVertex(bufferbuilder, lastMatrix, BOX_COORDS[i][1]).setUv(uv.bottomLeft().u(), uv.bottomLeft().v()).setColor(rgba.red(), rgba.green(), rgba.blue(), rgba.alpha());
+		addVertex(bufferbuilder, lastMatrix, BOX_COORDS[i][2]).setUv(uv.bottomRight().u(), uv.bottomRight().v()).setColor(rgba.red(), rgba.green(), rgba.blue(), rgba.alpha());
+		addVertex(bufferbuilder, lastMatrix, BOX_COORDS[i][3]).setUv(uv.topRight().u(), uv.topRight().v()).setColor(rgba.red(), rgba.green(), rgba.blue(), rgba.alpha());
 		BufferUploader.drawWithShader(bufferbuilder.build());
+	}
+	
+	// Same as adding the vertex with the matrix, which would create a new vector for each vertex
+	private static VertexConsumer addVertex(VertexConsumer consumer, Matrix4f matrix, Vector3f position)
+	{
+		matrix.transformPosition(position.x, position.y, position.z, VERTEX);
+		
+		return consumer.addVertex(VERTEX.x, VERTEX.y, VERTEX.z);
 	}
 	
 	

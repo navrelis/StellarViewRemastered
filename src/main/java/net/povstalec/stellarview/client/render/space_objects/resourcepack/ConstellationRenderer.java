@@ -27,6 +27,13 @@ public class ConstellationRenderer<T extends Constellation> extends SpaceObjectR
 	
 	protected StarData starData;
 	
+	// Reused every frame, each Constellation has its own because they are handed to the star data
+	private final SpaceCoords difference = new SpaceCoords();
+	private final Matrix4f transformedModelView = new Matrix4f();
+	
+	// Reused by every Constellation, it holds no value past the line after the one it is written in
+	private static final Quaternionf VIEW_ROTATION = new Quaternionf();
+	
 	public ConstellationRenderer(T constellation)
 	{
 		super(constellation);
@@ -106,7 +113,7 @@ public class ConstellationRenderer<T extends Constellation> extends SpaceObjectR
 	{
 		if(shouldRender()) // Otherwise the stars are a part of the parent Star Field, which renders them
 		{
-			SpaceCoords difference = viewCenter.getCoords().sub(spaceCoords());
+			SpaceCoords difference = viewCenter.getCoords().sub(spaceCoords(), this.difference);
 			
 			if(starData == null)
 				setStars();
@@ -118,7 +125,7 @@ public class ConstellationRenderer<T extends Constellation> extends SpaceObjectR
 			
 			if(!GeneralConfig.disable_stars.get() && viewCenter.starBrightness() > 0.0F)
 			{
-				final var transformedModelView = new Matrix4f(modelViewMatrix);
+				final var transformedModelView = this.transformedModelView.set(modelViewMatrix);
 				
 				//stack.translate(0, 0, 0);
 				if(hasTexture)
@@ -130,7 +137,7 @@ public class ConstellationRenderer<T extends Constellation> extends SpaceObjectR
 				if(isStatic) // Star shaders have no fog, only the vanilla shaders used for the static sky can have it once a shader pack replaces them
 					FogRenderer.setupNoFog();
 				
-				Quaternionf q = SpaceCoords.getQuaternionf(level, viewCenter, partialTicks);
+				Quaternionf q = SpaceCoords.getQuaternionf(level, viewCenter, partialTicks, VIEW_ROTATION);
 				
 				transformedModelView.rotate(q);
 				this.starData.renderStars(StarField.LevelOfDetail.fromDistance(difference), transformedModelView, projectionMatrix, difference, isStatic, hasTexture);

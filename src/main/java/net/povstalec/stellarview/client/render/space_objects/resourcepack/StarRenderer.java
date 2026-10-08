@@ -16,6 +16,8 @@ import net.povstalec.stellarview.common.util.SphericalCoords;
 import net.povstalec.stellarview.common.util.TextureLayer;
 import org.joml.Matrix4f;
 
+import java.util.ArrayList;
+
 public class StarRenderer<T extends Star> extends StarLikeRenderer<T>
 {
 	public StarRenderer(T star)
@@ -75,9 +77,10 @@ public class StarRenderer<T extends Star> extends StarLikeRenderer<T>
 		
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		
-		for(TextureLayer textureLayer : renderedObject.getTextureLayers())
+		ArrayList<TextureLayer> textureLayers = renderedObject.getTextureLayers();
+		for(int i = 0; i < textureLayers.size(); i++)
 		{
-			renderTextureLayer(textureLayer, viewCenter, level, camera, tesselator, lastMatrix, sphericalCoords, fade, ticks, distance, partialTicks);
+			renderTextureLayer(textureLayers.get(i), viewCenter, level, camera, tesselator, lastMatrix, sphericalCoords, fade, ticks, distance, partialTicks);
 		}
 	}
 }

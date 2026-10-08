@@ -8,6 +8,7 @@ import net.povstalec.stellarview.common.config.GeneralConfig;
 import net.povstalec.stellarview.common.util.*;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import com.mojang.datafixers.util.Either;
@@ -230,6 +231,10 @@ public class OrbitingObject extends TexturedObject
 				Codec.FLOAT.optionalFieldOf(EPOCH_MEAN_ANOMALY, 0F).forGetter(OrbitInfo::epochMeanAnomaly)
 				).apply(instance, OrbitInfo::new));
 		
+		// Reused by the orbit vectors written into a destination, they hold no value outside of calculating one
+		private static final Matrix4f SCRATCH_MATRIX = new Matrix4f();
+		private static final Quaternionf SCRATCH_ROTATION = new Quaternionf();
+		
 		private float apoapsis;
 		private float periapsis;
 		private float orbitClampDistance; // Visually clamps the orbit as if it was viewed from this distance
@@ -348,6 +353,48 @@ public class OrbitingObject extends TexturedObject
 			}
 			
 			return getOrbitVector(ticks, partialTicks);
+		}
+		
+		/**
+		 * Same vector as getOrbitVector(ticks, partialTicks), but its matrices are built in reused ones, so this may only be called on the render thread
+		 * @param dest Destination vector into which the orbit vector should be written
+		 * @return Returns dest
+		 */
+		public Vector3f getOrbitVector(long ticks, float partialTicks, Vector3f dest)
+		{
+			if(getClass() != OrbitInfo.class) // A subclass may calculate the vector or its matrices in its own way
+				return dest.set(getOrbitVector(ticks, partialTicks));
+			
+			dest.set(INITIAL_ORBIT_VECTOR);
+			
+			float trueAnomaly = (float) eccentricAnomaly(ticks, partialTicks);
+			
+			dest.mulProject(SCRATCH_MATRIX.identity().rotate(SCRATCH_ROTATION.rotationY(trueAnomaly)));
+			dest.mulProject(getOrbitMatrix());
+			
+			return dest;
+		}
+		
+		/**
+		 * Same vector as getOrbitVector(ticks, partialTicks, distance), but its matrices are built in reused ones, so this may only be called on the render thread
+		 * @param dest Destination vector into which the orbit vector should be written
+		 * @return Returns dest
+		 */
+		public Vector3f getOrbitVector(long ticks, float partialTicks, double distance, Vector3f dest)
+		{
+			if(getClass() != OrbitInfo.class) // A subclass may calculate the vector or its matrices in its own way
+				return dest.set(getOrbitVector(ticks, partialTicks, distance));
+			
+			getOrbitVector(ticks, partialTicks, dest);
+			
+			if(orbitClampDistance > 0 && distance > orbitClampDistance)
+			{
+				float mul = (float) distance / orbitClampDistance;
+				
+				dest.mulProject(SCRATCH_MATRIX.identity().scale(mul, mul, mul));
+			}
+			
+			return dest;
 		}
 		
 		public double meanAnomaly(long ticks, float partialTicks)

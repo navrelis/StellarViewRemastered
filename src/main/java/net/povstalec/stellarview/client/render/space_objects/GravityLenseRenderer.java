@@ -101,18 +101,19 @@ public abstract class GravityLenseRenderer<T extends GravityLense> extends StarL
 	{
 		Vector3f positionVector = getPosition(viewCenter, parentRotation, viewCenter.ticks(), partialTicks).add(parentVector); // Handles orbits 'n stuff
 		
-		// Add parent vector to current coords
-		SpaceCoords coords = renderedObject.getCoords().add(positionVector);
+		// Add parent vector to current coords and subtract View Center coords from them to get relative coords
+		SpaceCoords coords = renderedObject.getCoords();
 		
-		// Subtract coords of this from View Center coords to get relative coords
-		coords.skyPosition(gravityLensePosition, level, viewCenter, partialTicks, false);
-		lastDistance = coords.skyPosition(sphericalCoords, level, viewCenter, DEFAULT_DISTANCE, partialTicks, true);
+		coords.skyPosition(gravityLensePosition, positionVector, level, viewCenter, partialTicks, false);
+		lastDistance = coords.skyPosition(sphericalCoords, positionVector, level, viewCenter, DEFAULT_DISTANCE, partialTicks, true);
 		
 		double childRenderDistance = renderedObject.getFadeOutHandler().getMaxChildRenderDistance().toKm();
 		if(childRenderDistance > lastDistance)
 		{
-			for(SpaceObjectRenderer<?> child : children)
+			for(int i = 0; i < children.size(); i++)
 			{
+				SpaceObjectRenderer<?> child = children.get(i);
+				
 				// Render child behind the parent, decided only once per frame because rendering updates the distance of the child
 				child.renderedBehindParent = child.lastDistance >= this.lastDistance;
 				if(child.renderedBehindParent)
@@ -126,8 +127,10 @@ public abstract class GravityLenseRenderer<T extends GravityLense> extends StarL
 		
 		if(childRenderDistance > lastDistance)
 		{
-			for(SpaceObjectRenderer<?> child : children)
+			for(int i = 0; i < children.size(); i++)
 			{
+				SpaceObjectRenderer<?> child = children.get(i);
+				
 				// Render child in front of the parent
 				if(!child.renderedBehindParent)
 					child.render(viewCenter, level, partialTicks, modelViewMatrix, camera, projectionMatrix, isFoggy, setupFog, tesselator, positionVector, axisRotation());

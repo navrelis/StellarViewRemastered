@@ -3,7 +3,6 @@ package net.povstalec.stellarview.client.resourcepack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexBuffer;
-import com.mojang.math.Axis;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.client.Camera;
@@ -31,6 +30,7 @@ import net.povstalec.stellarview.common.util.MinMax;
 import net.povstalec.stellarview.common.util.SpaceCoords;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.HashMap;
@@ -75,6 +75,10 @@ public class ViewCenter
 	protected SpaceCoords coords;
 	protected AxisRotation axisRotation;
 	protected long rotationPeriod;
+	
+	// Reused every frame, the matrix is the one all sky objects of this View Center get rendered with
+	private final Matrix4f skyModelView = new Matrix4f();
+	private final Quaternionf skyRotation = new Quaternionf();
 	
 	@Nullable
 	protected final MeteorEffect.ShootingStar shootingStar;
@@ -392,7 +396,7 @@ public class ViewCenter
 		
 		coords = viewObject.spaceCoords();
 		
-		final var transformedModelView = new Matrix4f(modelViewMatrix);
+		final var transformedModelView = skyModelView.set(modelViewMatrix);
 		
 		if(updateTicks)
 		{
@@ -424,12 +428,12 @@ public class ViewCenter
 			if(viewObject.orbitInfo() != null)
 				rotation -= viewObject.orbitInfo().meanAnomaly(this.ticks % viewObject.orbitInfo().orbitalPeriod().ticks(), tickDifference() * partialTicks);
 			
-			transformedModelView.rotate(Axis.YP.rotation((float) getAxisRotation().yAxis()));
-			transformedModelView.rotate(Axis.ZP.rotation((float) getAxisRotation().zAxis()));
-			transformedModelView.rotate(Axis.XP.rotation((float) getAxisRotation().xAxis()));
+			transformedModelView.rotate(skyRotation.rotationY((float) getAxisRotation().yAxis()));
+			transformedModelView.rotate(skyRotation.rotationZ((float) getAxisRotation().zAxis()));
+			transformedModelView.rotate(skyRotation.rotationX((float) getAxisRotation().xAxis()));
 			
-			transformedModelView.rotate(Axis.YP.rotation((float) rotation));
-			transformedModelView.rotate(Axis.ZP.rotation((float) getZRotation(level, camera, partialTicks)));
+			transformedModelView.rotate(skyRotation.rotationY((float) rotation));
+			transformedModelView.rotate(skyRotation.rotationZ((float) getZRotation(level, camera, partialTicks)));
 		}
 		
 		viewObject.renderFrom(this, level, tickDifference() * partialTicks, transformedModelView, camera, projectionMatrix, StellarViewFogEffects.isFoggy(minecraft, camera, this), setupFog, tesselator);
@@ -451,6 +455,8 @@ public class ViewCenter
 			return false;
 		
 		minecraft.getProfiler().push(StellarView.MODID);
+		
+		LightEffects.beginFrame(); // Light pollution and the config values behind the brightness are looked up once per rendered sky
 		
 		if(this.levelTicks != ticks)
 		{

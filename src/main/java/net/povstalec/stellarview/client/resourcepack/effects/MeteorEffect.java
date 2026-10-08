@@ -6,11 +6,11 @@ import java.util.List;
 import com.mojang.blaze3d.vertex.*;
 import net.povstalec.stellarview.client.render.LightEffects;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.math.Axis;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -30,6 +30,10 @@ public abstract class MeteorEffect
 	public static final UV.Quad UV = new UV.Quad(false);
 	public static final float DEFAULT_DISTANCE = 100.0F;
 	public static final SphericalCoords SPHERICAL_START = new SphericalCoords(DEFAULT_DISTANCE, 0, 0);
+	
+	// Reused by every meteor, the matrix holds no value once the meteor it was set up for has been rendered
+	private static final Matrix4f METEOR_MODEL_VIEW = new Matrix4f();
+	private static final Quaternionf METEOR_ROTATION = new Quaternionf();
 	
 	// Indices of the independent values derived from a single seed
 	protected static final int SEED_APPEARANCE = 1;
@@ -142,11 +146,11 @@ public abstract class MeteorEffect
 					   float xRotation, float yRotation, float zRotation,
 					   MeteorType meteorType, float mulSize, float addRotation)
 	{
-		final var transformedModelView = new Matrix4f(modelViewMatrix);
+		final var transformedModelView = METEOR_MODEL_VIEW.set(modelViewMatrix);
 		
-		transformedModelView.rotate(Axis.YP.rotationDegrees(yRotation));
-		transformedModelView.rotate(Axis.ZP.rotationDegrees(zRotation));
-		transformedModelView.rotate(Axis.XP.rotationDegrees(xRotation));
+		transformedModelView.rotate(METEOR_ROTATION.rotationY(yRotation * Mth.DEG_TO_RAD));
+		transformedModelView.rotate(METEOR_ROTATION.rotationZ(zRotation * Mth.DEG_TO_RAD));
+		transformedModelView.rotate(METEOR_ROTATION.rotationX(xRotation * Mth.DEG_TO_RAD));
 		
 		meteorType.render(tesselator, transformedModelView, SPHERICAL_START, rgba(viewCenter, level, camera, viewCenter.ticks(), partialTicks), viewCenter.ticks(), mulSize, addRotation);
 	}

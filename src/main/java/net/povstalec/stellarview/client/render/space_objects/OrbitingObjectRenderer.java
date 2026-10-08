@@ -46,9 +46,9 @@ public abstract class OrbitingObjectRenderer<T extends OrbitingObject> extends T
 		if(orbitInfo() != null)
 		{
 			if(!viewCenter.objectEquals(this) && orbitInfo().orbitClampNumber() > 0 && parent != null)
-				return orbitInfo().getOrbitVector(ticks, partialTicks, parent.lastDistance);
+				return orbitInfo().getOrbitVector(ticks, partialTicks, parent.lastDistance, new Vector3f());
 			else
-				return orbitInfo().getOrbitVector(ticks, partialTicks);
+				return orbitInfo().getOrbitVector(ticks, partialTicks, new Vector3f());
 		}
 		else
 			return super.getPosition(viewCenter, ticks, partialTicks);
