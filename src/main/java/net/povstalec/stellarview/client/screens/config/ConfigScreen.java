@@ -32,6 +32,9 @@ public class ConfigScreen extends Screen
 		this.addRenderableWidget(Button.builder(Component.translatable("gui.stellarview.config.general"),
 				(button) -> this.minecraft.setScreen(new GeneralConfigScreen(this))).bounds(this.width / 2 - 100, l, 200, 20).build());
 		
+		this.addRenderableWidget(Button.builder(Component.translatable("gui.stellarview.config.clouds"),
+				(button) -> this.minecraft.setScreen(new CloudsConfigScreen(this))).bounds(this.width / 2 - 100, l + 24, 200, 20).build());
+
 		this.addRenderableWidget(Button.builder(Component.translatable("gui.stellarview.config.overworld"),
 				(button) -> this.minecraft.setScreen(new OverworldConfigScreen(this))).bounds(this.width / 2 - 100, l + 24 * 2, 200, 20).build());
 		

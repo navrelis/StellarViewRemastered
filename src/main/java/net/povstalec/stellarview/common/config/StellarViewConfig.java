@@ -21,6 +21,10 @@ public class StellarViewConfig
 		GeneralConfig.init(client);
 		CLIENT_BUILDER.pop();
 		
+		CLIENT_BUILDER.push("Clouds Config");
+		CloudsConfig.init(client);
+		CLIENT_BUILDER.pop();
+
 		CLIENT_BUILDER.push("Overworld Config");
 		OverworldConfig.init(client);
 		CLIENT_BUILDER.pop();

@@ -11,6 +11,7 @@ import net.povstalec.stellarview.client.render.clouds.StellarCloudRenderer;
 import net.povstalec.stellarview.client.render.shader.StellarViewVertexFormat;
 import net.povstalec.stellarview.client.render.space_objects.distinct.LunaRenderer;
 import net.povstalec.stellarview.client.render.space_objects.resourcepack.*;
+import net.povstalec.stellarview.common.config.CloudsConfig;
 import net.povstalec.stellarview.common.config.StellarViewConfig;
 import net.povstalec.stellarview.common.config.StellarViewConfigSpec;
 
@@ -33,6 +34,7 @@ public class StellarViewClient implements ClientModInitializer
 		SpaceObjectRenderers.register(Constellation.class, ConstellationRenderer<Constellation>::new);
 		
 		registerConfig(StellarViewConfig.CLIENT_CONFIG, StellarView.MODID + "-client.toml");
+		CloudsConfig.apply();
 
 		StellarCloudRenderer.init();
 	}
