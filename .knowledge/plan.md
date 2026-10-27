@@ -14,8 +14,8 @@ Status values: open / in progress / in review / done. Size: S = short (1), L = l
 | T1 | In-game: shaders off / Complementary / BSL, rain, thunder, sunset, End/Nether, F3+T, cloud setting off | screenshots, no errors in log | I1, I2, D3 | lead | - | done |
 | T2 | Perf: our clouds vs Better Clouds 1.13.11 vs vanilla in the pack | ms/frame and allocation numbers | T1 | lead | - | skipped (estimates kept) |
 | T3 | Pack: back up + remove better-clouds jar, install 1.1.0 | pack launches | T1 | lead | - | done |
-| G1 | Git: commits, merge `remastered` into default branch, delete unused branches/worktrees, push | origin clean, one default branch | all code | lead | - | open |
-| U1 | CurseForge upload, project 1733831 | file id + URL | G1, T3 | lead | - | open |
+| G1 | Git: commits, merge `remastered` into default branch, delete unused branches/worktrees, push | origin clean, one default branch | all code | lead | - | done (local main left to owner) |
+| U1 | CurseForge upload, project 1733831 | file id + URL | G1, T3 | lead | - | done (file 9345188) |
 
 Parallel: D1 (Opus) + D2 + D3 (Sonnet) now. I2 + I3 after I1 (different files).
 

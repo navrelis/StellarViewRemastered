@@ -27,3 +27,4 @@
 - 2026-10-27 T1 shader toggle run s2shader (Complementary, previous build): clean, 12 shots; shaders on = only the pack's clouds, off = ours, on again = pack's; pause/resume lines in log; guarded 29/29.
 - 2026-10-27 T1 smoke rerun s2soft (jar c948220e): clean, no shader compile errors, puffs soft with no box edges (above, horizon, sunset checked); End left alone + return OK. Accepted. T2 perf comparison skipped (owner prefers shipping; docs keep their estimates, box count 12.9k matches the docs' ~13k).
 - 2026-10-27 T3: pack has StellarViewRemastered-1.21.1-1.1.0-Fabric.jar (c948220e), test jar removed, Better Clouds stays in mods_backup; three launches clean.
+- 2026-10-27 U1: uploaded to CurseForge 1733831, file id 9345188 (jar c948220e, 1.21.1/Fabric/Client, fabric-api required, modmenu optional). G1: default branch fast-forwarded to d9add37. Final report written.
