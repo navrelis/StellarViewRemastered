@@ -1,18 +1,17 @@
-# Decisions
+# Decisions (session S2)
 
-- Working branch `remastered` from `stellarview-1.21.1-fabric` (e64d05f), in the session worktree: the main checkout keeps the base branch untouched.
-- Upstream has no newer commits on any 1.21.1 branch (fetched 2026-10-08): nothing to merge.
-- R1 cause is upstream design, not a glitch: Luna has a realistic 8-day synodic orbit and `day_blending` draws large bodies at up to full brightness by day. Fix = option `vanilla_moon_cycle` (default on) that keeps the moon opposite the sun; realistic orbit stays available. Reason: this is what upstream issue #101 asks for and what vanilla players expect; hiding the moon by day only would leave nights without a moon.
-- R2 uses Iris' public API (`IrisApi.isShaderPackInUse()`) through reflection/MethodHandle: no new build dependency, no crash without Iris.
-- R2 guard sits in the central `ViewCenters.renderViewCenterSky`, not only in the mixin: add-ons that call the API are switched off too.
-- No JUnit: rule "no new libraries". Proof by build and in-game screenshots.
-- Package `net.povstalec.stellarview` and mod id stay: add-on and config compatibility.
-- Game runs use a wrapper in the session scratchpad that imports the pack harness from `F:\Coding\NytheriaDevelopment\.dev` and patches paths in memory: the harness and the instance layout belong to session S2 and are not edited; no junctions in the instance.
-- Lang keys for the new options only in en_us and de_de: the other three languages fall back to English; no machine translations of unknown quality.
-- Fork has GitHub issues disabled; `fabric.mod.json` points to the fork's issue URL anyway. Enabling issues is a repository setting for the owner (in the report).
-- Old jar backup goes to `F:\Coding\NytheriaDevelopment\mods_backup` (the pack's existing backup folder; the instance has none).
-- Meteor chance fix is kept although it makes meteors much rarer than players of 0.5.3 are used to: the options say "chance" with default 10 and were simply never applied; 100 restores the old frequency. Stated in the changelog.
-- Star alpha fix uses "min when beyond the threshold, otherwise max" (not a smooth clamp): this is what a fresh start of 0.5.3 shows, so the Overworld sky keeps its look.
-- `SpaceRegion` truncating division (audit A22) left as is: intent unclear, nothing changes for the shipped skies at the default render distance.
-- Dead options (`stars_always_visible`, Aether/Twilight `config_priority` and chances, `alt_vertex_build_order`) left in place: removing keys could break add-ons that read them; listed in the report.
-- Perf metric: allocation per frame under the mod's frames (JFR allocation samples / frame count) is the headline number; CPU share is reported with its sampling interval because 10 ms sampling gives under 30 samples per window.
+- Licence: Better Clouds is MPL-2.0 and cannot be relabelled MIT; owner chose a clean-room MIT renderer over porting MPL files. Reason: owner wants the whole mod MIT; clean room is the legal way.
+- Clean-room separation: only D1 reads Better Clouds (source clone in the lead's scratchpad); implementers get the prose description only and are told not to open the source or the pack's better-clouds jar. The clone is deleted after D1 is accepted.
+- Source for D1 is the 1.13.11 code (branch `1.21.11`, `versions/1.21.1-fabric`), the version in the pack, not the linked `1.21.0` branch (1.7.1, MC 1.21.0). No decompiling: the source is public.
+- Settings in Stellar View's own config system, no YACL. Reason: owner wants it simple; no new runtime dependency.
+- Standalone Better Clouds installed: our clouds step aside (no hard `breaks`). Reason: packs that add Stellar View keep launching.
+- Version 1.1.0 (new feature, no breaking change).
+
+## S1 decisions (still valid)
+- Package `net.povstalec.stellarview` and mod id stay (add-ons, configs).
+- Iris called via its public API by MethodHandle, no build dependency.
+- Shader switch in `ViewCenters.renderViewCenterSky`.
+- Under an Iris shader pack our clouds yield (renderClouds runs on to vanilla/the pack). Reason: none of the pack's shader packs use vanilla clouds (Complementary/Derivative clouds=off, BSL discards them); drawing into Iris targets caused double clouds and crashes in the original (spec W18, 7.4).
+- Hook: own mixin, HEAD cancellable on LevelRenderer.renderClouds; pass through when the dimension has a Fabric DimensionRenderingRegistry cloud renderer (Aether) or no cloud height. Reason: order-independent against Porting Lib, Sporran, Fabric API (survey).
+- Cloud amount from weather changes on the GPU (density threshold per frame), no rebuild per step. Reason: spec W14 (pops and CPU spikes).
+- Colour from our own analytic sky/sun model, no lookup table. Reason: the original's table is an MPL asset.

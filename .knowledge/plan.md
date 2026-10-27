@@ -1,29 +1,25 @@
-# Plan
+# Plan (session S2: own cloud renderer, 1.1.0)
 
-Status values: open / in progress / in review / done.
+Status values: open / in progress / in review / done. Size: S = short (1), L = long (2).
 
-| # | Task | Definition of done | Depends on | Model | Status |
-|---|------|--------------------|-----------|-------|--------|
-| T0 | Baseline build of the untouched branch | `gradlew build` result known | - | lead | done |
-| A1 | Read-only audit: bugs, per-frame cost, orbit maths, config system | two ranked lists with file:line, four answers | - | Opus | done |
-| A2 | Read-only: how to drive the pack's client harness (`sky_shot`) | exact commands, side effects, restore steps | - | Sonnet | done |
-| G1 | Game driver wrapper in the session scratchpad (reuses the pack harness unchanged, game lock, absolute ticks, shader toggle step) | dry-run prints a complete plan, nothing written outside the scratchpad | A2 | Sonnet | done |
-| T1 | R1 reproduce in the pack with 0.5.3 | screenshots: moon in the day sky, day and time noted | A2, game lock | lead | done |
-| T2 | R1 fix: `vanilla_moon_cycle` in `LunaRenderer` | from Earth the moon is at the antisolar point at every tick; option off = old behaviour; other view centers unchanged | A1 | Opus | done (in-game proof in T9) |
-| T3 | R2 shader switch + both new config options (spec, screens, lang) | with a shader pack in use `renderViewCenterSky` returns false; toggling needs no restart; option `disable_with_shaders` default on; no crash without Iris | A1 | Sonnet | done (in-game proof in T9) |
-| T4a | R3 render fixes (audit A2, A3, A6, A7, A8, A12, A14, A21, profiler pop, DayBlending codec, B3) | each finding fixed or rejected with reason; build green | A1 | Opus | done (in-game checks in T9) |
-| T4b | R3 small fixes (audit A4, A11, A20, A23 parts, A24, A25, debug prints) | each finding fixed or rejected with reason; build green | A1 | Sonnet | done |
-| T4c | R3 maths/brightness fixes + per-frame cost (audit A1, A5, A9, A10, A13, A15, B1, B2, B4, B5; judge A16-A19, A22) | fixed or rejected with reason; same picture where promised; build green | T2, T4a | Opus | done (in-game checks in T9) |
-| T5 | R3 optimisation with numbers | before/after: allocation per frame and sky render time, same picture | T4, measuring method from A2 | Opus | done |
-| T6 | Metadata: name, version 0.6.0, credits, links, jar name, licence file in jar, Mod Menu optional, README | jar name and `fabric.mod.json` correct, LICENSE inside the jar | - | Sonnet | done |
-| T7 | R5 pixel-art logo 64x64 -> 512, mod icon | both PNGs in the repo, generator script, nearest-neighbour proven (512 = 64 x 8 blocks) | - | Opus | done |
-| T8 | R4 `CURSEFORGE.md` | summary <= 150 characters, description, credits, MIT | T2-T5 known | Sonnet | done |
-| T9 | R6 install in the pack, in-game check of R1 and R2 for every shader pack | screenshots day/night, shaders on/off without restart, pack launches | T2-T6, game lock | lead | done (Derivative, static sky, instancing off not run: owner stopped further tests) |
-| T10 | Is the pack's shader-side double-sun workaround still needed? | answer with evidence in the report | T9 | lead | done (answer: not needed any more; left in place) |
-| T11 | Final acceptance, `report.md`, push, line in `F:\Coding\.knowledge\log.md` | full build, no leftovers | all | lead | done |
+| # | Task | Definition of done | Depends on | Model | Size | Status |
+|---|------|--------------------|-----------|-------|------|--------|
+| D1 | Behaviour description of Better Clouds 1.13.11 (1.21.1 Fabric), dirty room | prose spec: look, options with ranges/defaults, pipeline order, interaction with vanilla/Sodium/Iris/DH/fog/weather, perf ideas, weaknesses; no code, no shader code, no identifiers or comments copied | - | Opus | L | done (`clouds-behaviour.md`) |
+| D2 | Pack + MC 1.21.1 survey (read-only, no Better Clouds jar) | every pack mod that touches clouds/sky/fog/weather/LevelRenderer listed with what it hooks; vanilla 1.21.1 cloud path in Mojang names; how Sodium 0.8.13, Iris 1.8.14 and the three shader packs handle clouds | - | Sonnet | L | done (`pack-clouds-survey.md`) |
+| D3 | Game driver for this session (pack harness, game lock, screenshots, JFR, shader toggle) | dry run prints a full plan, writes nothing outside the scratchpad | - | Sonnet | S | done |
+| I1 | Cloud renderer core: architecture + implementation in `client/clouds` | build green; clouds render in dev client; vanilla clouds replaced; Sodium + Iris paths per D2; option list handed to I2 | D1, D2 | Opus | L | in progress |
+| I2 | Cloud options in Stellar View config, screen, lang en/de | options persist, screen usable, defaults per I1 | I1 | Sonnet | S | open |
+| I3 | Version 1.1.0, metadata, README, `CURSEFORGE.md`, changelog | jar name right, credits, no BC code mentioned as included | I1 | Sonnet | S | open |
+| R1 | Review + bug/perf audit of the new code | findings fixed or rejected with reason | I1, I2 | lead (+ owner of task) | - | open |
+| T1 | In-game: shaders off / Complementary / BSL, rain, thunder, sunset, End/Nether, F3+T, cloud setting off | screenshots, no errors in log | I1, I2, D3 | lead | - | open |
+| T2 | Perf: our clouds vs Better Clouds 1.13.11 vs vanilla in the pack | ms/frame and allocation numbers | T1 | lead | - | open |
+| T3 | Pack: back up + remove better-clouds jar, install 1.1.0 | pack launches | T1 | lead | - | open |
+| G1 | Git: commits, merge `remastered` into default branch, delete unused branches/worktrees, push | origin clean, one default branch | all code | lead | - | open |
+| U1 | CurseForge upload, project 1733831 | file id + URL | G1, T3 | lead | - | open |
 
-Parallel: A1 + A2 now. T2 + T3 + T6 + T7 touch different files (T3 owns config/lang/screens, T2 only `LunaRenderer`/`Luna`, T6 metadata/build files, T7 logo files).
+Parallel: D1 (Opus) + D2 + D3 (Sonnet) now. I2 + I3 after I1 (different files).
+
+## Usage tally (work units)
+Opus: 2 / Sonnet: 3. Planned: Opus D1 2 + I1 2 = 4; Sonnet D2 2 + D3 1 + I2 1 + I3 1 = 5.
 
 ## Manual test checklist (grows)
-- Moon by day/night over 8 game days, option on and off.
-- Each shader pack: one sun, one moon, no Stellar View stars; shaders off: Stellar View sky back, no restart.

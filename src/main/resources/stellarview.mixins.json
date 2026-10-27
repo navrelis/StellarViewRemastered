@@ -8,6 +8,7 @@
 		"StellarViewShaderMixin",
 		"ResourcepackReloadMixin",
 		"LevelRendererMixin",
+		"CloudLevelRendererMixin",
 		"VertexFormatElementMixin",
 		"BufferBuilderMixin"
 	],
