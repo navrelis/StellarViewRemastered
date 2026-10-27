@@ -3,7 +3,7 @@
 	"id": "stellarview",
 	"version": "${version}",
 	"name": "Stellar View Remastered",
-	"description": "A maintained fork of Stellar View, a better night sky that keeps the Vanilla feeling. Adds a vanilla-like moon cycle, automatic hand-over of the sky to Iris shader packs, bug fixes and optimisations.",
+	"description": "A maintained fork of Stellar View, a better night sky that keeps the Vanilla feeling. Adds a vanilla-like moon cycle, automatic hand-over of the sky to Iris shader packs, bug fixes and optimisations. Also adds soft, voluminous clouds drawn by its own cloud renderer.",
 	"authors": [
 		"Woldericz_Junior (Povstalec) - original author",
 		"navrelis - Remastered"

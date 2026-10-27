@@ -1,6 +1,6 @@
 # CurseForge page draft: Stellar View Remastered
 
-Note for the owner: this file is a draft for the CurseForge project page and the first file upload. Nothing has been uploaded or published. Copy the parts you need by hand: the "Description" section goes into the project description, the changelog goes into the file upload form.
+Note for the owner: this file is a draft for the CurseForge project page and the file uploads (the current one is 1.1.0). Nothing has been uploaded or published. Copy the parts you need by hand: the "Description" section goes into the project description, the changelog goes into the file upload form.
 
 ## Project name
 
@@ -8,19 +8,19 @@ Stellar View Remastered
 
 ## Summary
 
-Fork of Stellar View: a sky of individual stars, a Vanilla-style Moon cycle and automatic Iris shader support.
+Fork of Stellar View: a starry sky with a Vanilla-style Moon, soft volumetric clouds and automatic Iris shader support.
 
-<!-- 110 characters -->
+<!-- 119 characters -->
 
 Alternatives:
 
-- Maintained fork of Stellar View with a Vanilla-style Moon cycle, Iris shader hand-over and bug fixes.
+- Maintained fork of Stellar View: Milky Way sky, Vanilla-style Moon, its own soft clouds, Iris shader hand-over.
 
-  <!-- 101 characters -->
+  <!-- 111 characters -->
 
-- Stellar View, maintained: Milky Way night sky, Moon that follows the Sun, and a sky that steps aside for shaders.
+- Stellar View, maintained: night sky, Moon that follows the Sun, voluminous clouds and a sky that steps aside for shaders.
 
-  <!-- 113 characters -->
+  <!-- 121 characters -->
 
 ## Suggested project settings
 
@@ -41,9 +41,47 @@ Stellar View Remastered is a maintained fork of [Stellar View](https://github.co
 
 The mod is client-side only. It does not need to be installed on a server and changes nothing on the server.
 
+## Clouds
+
+Version 1.1.0 adds Stellar View's own cloud renderer. It replaces the flat Vanilla clouds with soft, translucent cumulus in Vanilla style, built from many overlapping puffs.
+
+- **Colours follow the time of day.** White by day, warm orange toward the sun at sunrise and sunset with violet on the far side, dark blue at night (brighter at full moon), and a silver lining around the sun.
+- **Weather.** Rain and thunder make the clouds grow, merge and darken smoothly, without popping. Lightning flashes light them.
+- **Distance and fog.** Far clouds shrink and melt into the fog. Near the camera they fade softly when you fly through them.
+- **Wind.** Slow drift.
+- **Vanilla cloud setting.** Off = no clouds, Fast = flat cloud sheets, Fancy = full volume. Works with Fabulous graphics.
+- **Light on resources.** Clouds are generated on a background thread. At default settings that is about 13k puffs, a couple of draw calls and around 0.2 MB of cloud data.
+- **Privacy.** No telemetry and no network access.
+
+### Cloud settings
+
+Open the Stellar View config screen and go to Clouds, or edit the section "Clouds Config" in `config/stellarview-client.toml`. All settings apply live, without a restart.
+
+| Setting | Range | Default |
+|---|---|---|
+| Enabled | on/off | on |
+| Cloud distance | 100-350 % of render distance | 200 % |
+| Coverage | 0-100 % | 50 % |
+| Cloud size | 50-200 % | 100 % |
+| Thickness | 0-96 blocks | 40 |
+| Height offset | -128 to 256 blocks | 0 |
+| Opacity | 10-200 % | 100 % |
+| Drift speed | 0-1000 % of Vanilla | 100 % |
+| Brightness | 50-150 % | 100 % |
+| Sunset glow | 0-150 % | 100 % |
+
+### Cloud compatibility
+
+- With an Iris shader pack active, the pack's own clouds are used.
+- If the standalone Better Clouds mod is installed, Stellar View leaves the clouds to it.
+- Dimensions with their own sky or cloud renderer (Aether, Twilight Forest, Nether, End) are left unchanged.
+- Works with Sodium (the Stellar View clouds replace Sodium's clouds) and honours the cloud height set in Sodium Extra.
+
+Cloud look inspired by Better Clouds by Qendolin; Stellar View's renderer is an independent implementation.
+
 ## What is different in Remastered
 
-Compared with Stellar View 0.5.3, version 1.0.0 changes the following.
+Compared with Stellar View 0.5.3, version 1.0.0 changed the following. These changes are all still in 1.1.0.
 
 - **Vanilla Moon Cycle.** The Moon now stays opposite the Sun. It rises at sunset, sets at sunrise and no longer shows up in the daytime sky. In the original, the Moon followed a realistic 8-day orbit and was in the daytime sky on most days. At new moon it appeared there as a dark square next to the Sun. The option is on by default. Turn it off to get the realistic orbit back.
 - **Shader hand-over.** While an Iris shader pack is active, Stellar View does not draw the sky. The shader pack draws the sun, moon and stars as its author intended. When you switch shaders off, Stellar View's sky is back on the next frame. No restart and no resource reload are needed. The option is on by default.
@@ -65,6 +103,7 @@ Compared with Stellar View 0.5.3, version 1.0.0 changes the following.
 - Light pollution: stars appear dimmer when you stand near a light source
 - Sky rotation that depends on where you are in the world
 - Custom skybox support
+- Soft, voluminous clouds from its own renderer (see Clouds)
 - Its own skies for the End, the Nether (through the config), the Aether and Twilight Forest when those mods are installed
 - All sky content is data-driven and can be changed with resource packs
 - Can be used as a library by other mods
@@ -96,7 +135,7 @@ The two new options:
 - Fabric Loader 0.16.14 or newer
 - Fabric API
 - Java 21
-- Optional: Mod Menu (config screen), Iris with Sodium (shader packs), Enhanced Celestials, Lunar
+- Optional: Mod Menu (config screen), Iris with Sodium (shader packs), Sodium Extra (cloud height), Enhanced Celestials, Lunar
 
 Remastered uses the same mod id (`stellarview`) and the same config file as Stellar View. Existing configs, resource packs and add-ons keep working. For the same reason, do not install it together with the original Stellar View. Use one or the other.
 
@@ -109,29 +148,67 @@ The documentation for resource pack authors is maintained for the original mod: 
 - Original mod: [Stellar View](https://github.com/Povstalec/StellarView) by Povstalec (in-game name Woldericz_Junior). Remastered builds on this work.
 - Upstream contributors: Noobly Walker, tehgreatdoge, Erdragh, tristankechlo.
 - Remastered: navrelis. Source code: [navrelis/StellarViewRemastered](https://github.com/navrelis/StellarViewRemastered).
+- Clouds: look inspired by Better Clouds by Qendolin; Stellar View's renderer is an independent implementation.
 - Licence: MIT. The licence text and the copyright notices of both authors are included in the jar and in the repository.
 
 If you like this mod, please look at the original project too and support its author: [CurseForge](https://www.curseforge.com/minecraft/mc-mods/stellarview), [Modrinth](https://modrinth.com/mod/stellarview), [GitHub](https://github.com/Povstalec/StellarView).
 
 ---
 
-## File upload: 1.0.0
+## File upload: 1.1.0
 
-- File: `StellarViewRemastered-1.21.1-1.0.0-Fabric.jar` (built by `gradlew build` into `build/libs` of the repository folder `F:\Coding\Stellar View Remastered`)
-- Display name: Stellar View Remastered 1.0.0 (Fabric 1.21.1)
-- Release type: Release (suggested)
+- File: `StellarViewRemastered-1.21.1-1.1.0-Fabric.jar` (built by `gradlew build` into `build/libs` of the repository folder `F:\Coding\Stellar View Remastered`)
+- Display name: Stellar View Remastered 1.1.0 (Fabric 1.21.1)
+- Version: 1.1.0
+- Release type: Release
 - Game version: 1.21.1
 - Mod loader: Fabric
 - Java: 21
-- Environment: client
+- Environment: Client
 - Relations:
   - Fabric API: required
   - Mod Menu: optional
-  - Iris Shaders: optional
 
 ### Changelog
 
 Copy the text between the lines into the changelog field.
+
+---
+
+Stellar View Remastered 1.1.0 adds Stellar View's own cloud renderer: soft, translucent, voluminous clouds in Vanilla style instead of the flat Vanilla clouds.
+
+**Added**
+
+- Clouds built from many overlapping puffs.
+- Colours follow the time of day: white by day, warm orange toward the sun at sunrise and sunset with violet on the far side, dark blue at night (brighter at full moon), and a silver lining around the sun.
+- Rain and thunder make the clouds grow, merge and darken smoothly, without popping. Lightning flashes light them.
+- Far clouds shrink and melt into the fog. Near the camera they fade softly when you fly through them.
+- Slow wind drift.
+- The Vanilla cloud setting is respected: Off = no clouds, Fast = flat cloud sheets, Fancy = full volume. Works with Fabulous graphics.
+- Clouds are generated on a background thread. At default settings that is about 13k puffs, a couple of draw calls and around 0.2 MB of cloud data.
+- No telemetry and no network access.
+- Settings in the Stellar View config screen (Clouds) and in `config/stellarview-client.toml` (section "Clouds Config"), all applied live: Enabled, Cloud distance (100-350 %, default 200 %), Coverage (0-100 %, default 50 %), Cloud size (50-200 %, default 100 %), Thickness (0-96 blocks, default 40), Height offset (-128 to 256 blocks, default 0), Opacity (10-200 %, default 100 %), Drift speed (0-1000 % of Vanilla, default 100 %), Brightness (50-150 %, default 100 %), Sunset glow (0-150 %, default 100 %).
+
+**Compatibility**
+
+- With an Iris shader pack active, the pack's own clouds are used.
+- If the standalone Better Clouds mod is installed, Stellar View leaves the clouds to it.
+- Dimensions with their own sky or cloud renderer (Aether, Twilight Forest, Nether, End) are left unchanged.
+- Works with Sodium (replaces Sodium's clouds) and honours Sodium Extra's cloud height.
+
+Cloud look inspired by Better Clouds by Qendolin; Stellar View's renderer is an independent implementation.
+
+The 1.0.0 changes (Vanilla Moon Cycle, shader hand-over, bug fixes) are all still included.
+
+---
+
+## Earlier upload: 1.0.0 (already released, kept as history)
+
+- File: `StellarViewRemastered-1.21.1-1.0.0-Fabric.jar`
+- Display name: Stellar View Remastered 1.0.0 (Fabric 1.21.1)
+- Relations were: Fabric API required, Mod Menu optional, Iris Shaders optional
+
+### Changelog 1.0.0
 
 ---
 
@@ -182,6 +259,6 @@ Changed behaviour: meteors are much rarer than in 0.5.3 by default, because the 
 - Create the CurseForge project (name, summary, categories, licence MIT, source URL).
 - Paste the description.
 - Upload the logo `logo/logo_512.png`.
-- Upload `StellarViewRemastered-1.21.1-1.0.0-Fabric.jar` with the settings and changelog above.
+- Upload `StellarViewRemastered-1.21.1-1.1.0-Fabric.jar` with the settings and changelog of the 1.1.0 block above.
 - Enable Issues in the GitHub repository settings, or clear the issues URL field.
 - Optional: tell the original author (Povstalec) about the fork. The MIT licence allows the fork as long as the licence and copyright notice stay with it. The jar and the repository both contain them.
