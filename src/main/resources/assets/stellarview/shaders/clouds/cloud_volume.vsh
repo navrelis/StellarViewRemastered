@@ -1,6 +1,7 @@
 #version 150
 
 // Stellar View clouds, volume pass: expands one unit box per instance into a cloud puff.
+// The box is only the hull the puff is rasterised with; cloud_volume.fsh traces the view ray through it.
 
 // Unit box corner in [0, 1]
 in vec3 Corner;
@@ -20,9 +21,16 @@ uniform vec4 Reach;
 uniform float Time;
 
 out vec3 position;
-out float alpha;
-out float height;
-out float tint;
+flat out float alpha;
+flat out float tint;
+// The box relative to the camera: centre and half size
+flat out vec3 boxCentre;
+flat out vec3 boxHalf;
+// Height of the box's bottom and top within the thickest possible box, in [0, 1]
+flat out vec2 heightRange;
+
+// The camera counts as inside a box this close to it, so the near plane never cuts a hole into its front faces
+const float INSIDE_MARGIN = 0.5;
 
 void main()
 {
@@ -60,14 +68,25 @@ void main()
 	{
 		// Invisible box: every vertex lands on the same point outside the clip volume, nothing is rasterised
 		position = vec3(0.0);
-		height = 0.0;
+		boxCentre = vec3(0.0);
+		boxHalf = vec3(1.0);
+		heightRange = vec2(1.0);
 		gl_Position = vec4(0.0, 0.0, 2.0, 1.0);
 		return;
 	}
 
-	float y = mix(bottom, top, Corner.y);
-	height = tallest > 0.0 ? clamp(y / tallest, 0.0, 1.0) : 1.0;
+	heightRange = tallest > 0.0 ? clamp(vec2(bottom, top) / tallest, 0.0, 1.0) : vec2(1.0);
+	boxCentre = vec3(centre.x, Origin.y + (top + bottom) * 0.5 * shrink, centre.y);
+	boxHalf = vec3(halfWidth, (top - bottom) * 0.5 * shrink, halfWidth);
 
-	position = vec3(centre.x + (Corner.x * 2.0 - 1.0) * halfWidth, Origin.y + y * shrink, centre.y + (Corner.z * 2.0 - 1.0) * halfWidth);
+	// Only front faces are drawn (back face culling), so every pixel of the box is shaded exactly once. With the
+	// camera inside the box there are no front faces: mirroring the box turns its winding inside out, then the far
+	// faces are the ones drawn and the fragment shader starts the ray at the camera
+	vec3 corner = Corner;
+	if(all(lessThan(abs(boxCentre), boxHalf + INSIDE_MARGIN)))
+		corner.x = 1.0 - corner.x;
+
+	float y = mix(bottom, top, corner.y);
+	position = vec3(centre.x + (corner.x * 2.0 - 1.0) * halfWidth, Origin.y + y * shrink, centre.y + (corner.z * 2.0 - 1.0) * halfWidth);
 	gl_Position = ViewProj * vec4(position, 1.0);
 }

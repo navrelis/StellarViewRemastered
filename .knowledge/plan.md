@@ -10,16 +10,16 @@ Status values: open / in progress / in review / done. Size: S = short (1), L = l
 | I1 | Cloud renderer core: architecture + implementation in `client/clouds` | build green; clouds render in dev client; vanilla clouds replaced; Sodium + Iris paths per D2; option list handed to I2 | D1, D2 | Opus | L | done (01a2fa4) |
 | I2 | Cloud options in Stellar View config, screen, lang en/de | options persist, screen usable, defaults per I1 | I1 | Sonnet | S | done |
 | I3 | Version 1.1.0, metadata, README, `CURSEFORGE.md`, changelog | jar name right, credits, no BC code mentioned as included | I1 | Sonnet | S | done |
-| R1 | Review + bug/perf audit of the new code | findings fixed or rejected with reason | I1, I2 | lead (+ owner of task) | - | open |
-| T1 | In-game: shaders off / Complementary / BSL, rain, thunder, sunset, End/Nether, F3+T, cloud setting off | screenshots, no errors in log | I1, I2, D3 | lead | - | open |
-| T2 | Perf: our clouds vs Better Clouds 1.13.11 vs vanilla in the pack | ms/frame and allocation numbers | T1 | lead | - | open |
-| T3 | Pack: back up + remove better-clouds jar, install 1.1.0 | pack launches | T1 | lead | - | open |
+| R1 | Review + bug/perf audit of the new code | findings fixed or rejected with reason | I1, I2 | lead (+ owner of task) | - | done (glGet kept, see decisions) |
+| T1 | In-game: shaders off / Complementary / BSL, rain, thunder, sunset, End/Nether, F3+T, cloud setting off | screenshots, no errors in log | I1, I2, D3 | lead | - | done |
+| T2 | Perf: our clouds vs Better Clouds 1.13.11 vs vanilla in the pack | ms/frame and allocation numbers | T1 | lead | - | skipped (estimates kept) |
+| T3 | Pack: back up + remove better-clouds jar, install 1.1.0 | pack launches | T1 | lead | - | done |
 | G1 | Git: commits, merge `remastered` into default branch, delete unused branches/worktrees, push | origin clean, one default branch | all code | lead | - | open |
 | U1 | CurseForge upload, project 1733831 | file id + URL | G1, T3 | lead | - | open |
 
 Parallel: D1 (Opus) + D2 + D3 (Sonnet) now. I2 + I3 after I1 (different files).
 
 ## Usage tally (work units)
-Opus: 4 / Sonnet: 3 (+2 running) = ~45 % Opus. Planned: Opus D1 2 + I1 2 = 4; Sonnet D2 2 + D3 1 + I2 1 + I3 1 = 5.
+Opus: 5 (D1 2, I1 2, I1 corr 1) / Sonnet: 5 (D2 2, D3 1, I2 1, I3 1) = 50 % Opus. I1 corr 1 stays with Opus (owner of the renderer, correction rule).
 
 ## Manual test checklist (grows)

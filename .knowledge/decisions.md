@@ -15,3 +15,8 @@
 - Hook: own mixin, HEAD cancellable on LevelRenderer.renderClouds; pass through when the dimension has a Fabric DimensionRenderingRegistry cloud renderer (Aether) or no cloud height. Reason: order-independent against Porting Lib, Sporran, Fabric API (survey).
 - Cloud amount from weather changes on the GPU (density threshold per frame), no rebuild per step. Reason: spec W14 (pops and CPU spikes).
 - Colour from our own analytic sky/sun model, no lookup table. Reason: the original's table is an MPL asset.
+
+## S2 continued (2026-10-27, second session)
+- I2 accepted without another delegation: the partial files already met the spec, and the build was green.
+- R1 glGet in GlStateSnapshot: no change unless T2 measures a cost. Reason: these are plain state queries the driver answers from its own client-side copy (no GPU readback); the owner's live session showed no stutter.
+- R1 Polytone expression-form cloud height lost: accepted (Sodium behaves the same). "ARB" GL path label: cosmetic, left.
